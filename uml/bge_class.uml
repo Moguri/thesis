@@ -1,0 +1,39 @@
+@startuml
+title BGE Animation Classes
+hide circle
+
+KX_Scene o-- KX_GameObject
+KX_Scene: UpdateAnimations(double curtime)
+KX_Scene: CListValue* m_objectlist;
+KX_Scene: CListValue* m_animatedlist;
+
+KX_GameObject <|-- BL_ArmatureObject
+KX_GameObject <|-- BL_DeformableGameObject
+KX_GameObject *-- BL_ActionManager
+KX_GameObject: BL_ActionManager* action_manager
+KX_GameObject: UpdateActionManager(double curtime)
+
+BL_ArmatureObject o-- bArmature
+bArmature *-- bPose
+BL_ArmatureObject *-- bPose
+BL_ArmatureObject <.. BL_Action
+BL_ArmatureObject: GetPose(bPose **pose)
+BL_ArmatureObject: GetMRDPose(bPose **pose)
+BL_ArmatureObject: SetPose(bPose *pose)
+
+BL_DeformableGameObject: RAS_Deformer *m_pDeformer
+BL_DeformableGameObject *-- RAS_Deformer
+
+BL_ActionManager o-- BL_Action
+BL_ActionManager: Update(double curtime)
+
+BL_Action: Update(double curtime)
+
+RAS_Deformer <|-- BL_MeshDeformer
+BL_MeshDeformer <|-- BL_SkinDeformer
+RAS_Deformer: Update()
+BL_MeshDeformer: Update()
+BL_SkinDeformer: Update
+BL_SkinDeformer <.. BL_ArmatureObject
+
+@enduml

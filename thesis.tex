@@ -1,0 +1,54 @@
+\documentclass[]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{minted}
+\usepackage{cite}
+\usepackage{caption}
+\usepackage{color}
+\usepackage{newclude}
+% \usepackage[toc,page]{appendix}
+
+\newcommand{\fig}[4] {
+\begin{center}
+    \includegraphics[scale=#2]{#1}
+  \captionof{figure}{#3}\label{fig:#4}
+\end{center}
+}
+
+% Setup some pretty code listings
+\definecolor{codebg}{rgb}{0.9, 0.9, 0.9}
+\newcommand{\includecode}[3] {
+\begin{center}
+ \inputminted[tabsize=4,
+              bgcolor=codebg
+ ]{#1}{code/#2.#1}
+ \captionof{listing}{#3}
+ \label{lst:#2}
+\end{center}
+}
+\newcommand{\includecpp}[2] {\includecode{cpp}{#1}{#2}}
+\newcommand{\includeglsl}[2] {\includecode{glsl}{#1}{#2}}
+
+\definecolor{todo}{rgb}{1,0,0}
+\newcommand{\todo}[1] {{\color{todo} TODO: #1}}
+
+\title{Improving the Performance of Skeletal Mesh Animations in the Blender Game Engine}
+\author{Mitchell Stokes}
+
+\begin{document}
+
+\maketitle
+
+\include*{sections/introduction}
+\include*{sections/background}
+\include*{sections/methods}
+\include*{sections/work}
+\include*{sections/conclusion}
+
+\clearpage
+
+\bibliographystyle{plain}
+\bibliography{library}
+\end{document}

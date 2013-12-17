@@ -1,0 +1,230 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\usepackage{cite}
+
+
+\definecolor{todo}{rgb}{1,0,0}
+
+\newcommand{\needcite} {{\color{todo} $^{Needs Citation}$}}
+\newcommand{\todo}[1] {{\color{todo} TODO: #1}}
+
+\title{Improving Performance of Skeletal Meshes in the Blender Game Engine}
+\author{Mitchell Stokes}
+
+\begin{document}
+
+\maketitle
+
+\section{Intro/Background}
+At present the Blender Game Engine (BGE) is considered to have poor performance when doing skeletal animations. Skeletal animations are animations that contain a collection of ``bones'' (usually called a ``rig'' or ``skeleton'') that are used to drive  mesh (a collection of polygons, which is a collection of vertexes) deformation. This is useful for animating characters which require more detailed animations than simply moving objects around. Handling these skeletal animations can generally be broken into two steps:
+
+\begin{enumerate}
+  \item Update the pose (positions of the bones) of the rig according to animation data (Blender calls these ``actions''). The performance here is dependent on the number of bones in the rig; the more bones, the more calculations have to be done to calculate the final pose of the rig.
+  \item Deform the mesh to the updated pose. The performance of this step is dependent on the number of vertexes in the mesh. Each vertex's position has to be calculated based on the bones that have influence of it.
+\end{enumerate}
+
+Below is a screenshot of nineteen characters being animated in the BGE. Their skeletons have sixty-nine bones each and their meshes have 4,951 vertexes each.
+
+\medskip
+\begin{center}
+\includegraphics[scale=0.5]{animation_example}
+\end{center}
+
+In the corner of this screenshot, it can be seen that the frametime is at 19.7ms (resulting in 50.8fps). This sounds reasonable until one considers that most games want to stay below about 17ms to get 60fps (or 33ms for 30fps). This scene is already above that 17ms and does not have any logic, physics, or a complicated scene to render. In other words, the animations are taking up too much time.
+
+\todo{Look at \cite{Gregory2009} for more citable information on skeletal mesh animations.}
+
+\subsection{Skinning}
+\todo{Discuss skinning, maybe pull some information from \cite{Gregory2009}.}
+
+\subsubsection{Hardware Skinning}
+\todo{Discuss hardware skinning.}
+Pros: Fast
+Cons: Has limitations (number of total bones, number of influence bones per vertex), most games are GPU bound, and thus have more CPU cycles to use than GPU cycles
+
+\subsection{Overview of Blender and BGE Systems}
+
+\subsubsection{Class Prefixes}
+Blender and the BGE are broken down into many modules. Functions and classes from these modules often have a prefix to help identify them (these prefixes also act as a poor-man's namespace to avoid name conflicts). In the BGE the following prefixes can be found:
+
+\begin{description}
+ \item[BL] Items closely tied to Blender. These are mostly found in the converter.
+ \item[SCA] Generic game engine code. This handles a lot of generic logic and most of the BGE's logic brick system. The prefix comes from the BGE's Sensor, Controller, Actuator architecture for logic bricks.
+ \item [KX] These items tend to be BGE specific code. The name comes from Ketsji, which was an old name for the BGE.
+ \item [KX\_SCA] These items blur the line between SCA and KX items. They should probably belong in one prefix or the other.
+ \item [SG] These items belong to the BGE's scenegraph code.
+ \item [RAS] These items belong to the BGE's rasterization, or rendering, code.
+ \item [PHY] These items belong to the BGE's generic physics interface.
+\end{description}
+
+Some prefixes from Blender that one might see used in BGE code include:
+
+\begin{description}
+ \item [BLF] Blender font handling code.
+ \item [BKE] Blender kernel, code. This contains most of the code to actually manipulate Blender data.
+ \item [BLI] Contains useful data structures such as linked lists, trees, etc.
+ \item [BLO] Blender file loading code.
+ \item [GPU] Blender GPU rendering code that is primarily used for the viewport. This module is sometimes referred to as bf\_gpu when talking about rendering to differentiate it from general gpu code/programming (e.g., OpenGL).
+ \item [DNA] Blender struct definition. Refer to section~\ref{sec:bf_dna_rna} for more details.
+ \item [RNA] Description layer for DNA. Refer to section~\ref{sec:bf_dna_rna} for more details.
+\end{description}
+
+\subsubsection{Blender and DNA/RNA}
+\label{sec:bf_dna_rna}
+\todo{Check out the Blender wiki for better DNA/RNA explanations.}
+
+Blender contains two systems for storing and manipulating data, these are DNA and RNA. DNA is responsible for storing (and ultimately saving) Blender data, while RNA describes the DNA data and how it can be accessed. In other words, DNA values are modified via RNA. Blender's animation system uses this RNA for writing out new pose data. Unfortunately looking up RNA values and modifying them where never optimized for speed. Therefore, these operations can be slow, and comprise a bulk of the pose updating time in Blender/BGE. \todo{Maybe generate a callgraph to show this is the case?}
+
+\subsubsection{BL\_SkinDeformer}
+\label{sec:bl_skindeformer}
+The BGE has a RAS\_Deformer interface which handles mesh deformations prior to uploading vertices to the GPU to be rendered. One such deformer is the BL\_SkinDeformer, which is responsible for handling skeletal mesh deformations. The BL\_SkinDeformer has two options for handling skinning: Blender Deformer and BGE Deformer. The Blender Deformer makes use of Blender's skinning code to modify the vertexes. This method is more accurate and has more features, but it is the slower of the two options. The BGE Deformer was written with performance in mind, and as such it tends to be less accurate than the Blender deformer and does not support as many features, but it is about 20\% faster. \todo{Double check the performance difference between the vertex deformers.} These options are exposed to the user as ``Vertex Deformers'' for armature objects.
+
+\section{Goals}
+\begin{enumerate}
+ \item Parallelize pose updates (this has already been done as part of Software Engineering, but it still needs some more cleanup + fixing)
+ \item Parallelize the process of deforming the mesh to the new pose (also known as skinning)
+ \item Implement hardware skinning as an option (this moves the skinning step to the GPU using a GLSL vertex shader)
+ \item Animation culling: only handle animation updates for visible meshes (I recently implemented this and committed it to Blender trunk)
+ \item Other possible optimizations in the pose updates:
+    \begin{enumerate}
+      \item Minimize lookups to Blender's RNA (e.g., lookup location instead of location.x, location.y, location.z). This is something that I have also done in the past, which yielded good results, but I never committed it.
+      \item Neither Blender's pose animation nor RNA (an integral part of Blender that animations rely on) were written with speed in mind, so I'm certain more opportunities for optimization exist (such as caching lookups), but I would need to do more digging.
+    \end{enumerate}
+\end{enumerate}
+
+\section{Methods/Design}
+\todo{This section is still scattered, informal thoughts.}
+
+The test scene pictured in the intro will be used as a benchmark to measure performance changes from various optimizations. As mentioned before this scene contains nineteen animated characters with each having sixty-nine bones and 4,951 vertexes. I may have to increase the number of characters.
+
+For parallelizing parts of the BGE, OpenMP should be used since this is used elsewhere in the Blender codebase. For any data structures (such as hash tables, etc) BlenLib should be checked before making new data structures from scratch. BlenLib is a part of Blender that contains common data structures. Also, Helgrind should be used to check for threading errors, and Valgrind should be used to ensure new code doesn't introduce memory leaks.
+
+Hardware skinning should be implemented as a ``vertex deformer.'' The BGE already has ``Blender Deformer'' and ``BGE CPU Deformer,'' and hardware skinning should be implemented as ``BGE GPU Deformer.'' The deformers will need to be responsible for their own data so the GPU deformer can upload data to the graphics card.
+
+Aside from the animation culling (which is already in trunk) I'll probably create a branch on GitHub to work on this project to make it easier to compare performance differences between my branch and trunk. To this end, I'll be using git-svn to use Git with Blender's SVN repository.
+
+\subsection{Tools}
+\begin{enumerate}
+ \item OpenMP\cite{openmp} for parallelization
+ \item Helgrind and Valgrind for error detection
+ \item Git, GitHub\cite{github} and Git-svn for version control
+\end{enumerate}
+
+\section{Initial Plan Outline}
+
+\begin{enumerate}
+ \item Work on and commit animation culling [done]
+ \item Parallelize pose updates
+    \begin{enumerate}
+     \item Dig up code from software engineering
+     \item Cleanup code, get rid of threading errors (as detected by Helgrind), test with existing projects (make sure no new bugs are introduced)
+     \item Collect performance data
+     \item Commit code
+    \end{enumerate}
+ \item Parallelize mesh deformation
+    \begin{enumerate}
+      \item Move mesh deformation calls into the parallel loop used for pose updates (that way each thread gets more work)
+      \item Get rid of threading errors (as detected by Helgrind), test with existing projects (make sure no new bugs are introduced)
+      \item Collect performance data
+      \item Commit code
+    \end{enumerate}
+ \item Hardware Skinning
+    \begin{enumerate}
+      \item Research the best way to move pose data to the graphics card (uniform buffer?)
+      \item Make each vertex deformer (section~\ref{sec:bf_dna_rna}) responsible for their own data (right now each deformer does only the deformation since handling the data is the same between the two existing deformers)
+      \item Implement a hardware skinning solution as another vertex deformer (BGE GPU Deformer)
+      \item Test with existing projects (make sure no new bugs are introduced)
+      \item Collect performance data
+      \item Commit code
+    \end{enumerate}
+ \item Other Pose Update Optimizations
+    \begin{enumerate}
+     \item Research ways to improve the existing code (some ideas mentioned in the goals)
+     \item Implement optimizations based on research
+     \item Test with existing projects (make sure no new bugs are introduced)
+     \item Collect performance data
+     \item Commit code
+    \end{enumerate}
+\end{enumerate}
+
+\section{Work Notes}
+\subsection{Animation Culling}
+If we cannot see the effects of the animation, there is no point in doing the animation. Iterate a skeleton's children and check the meshes. If any mesh has not been culled, do the animation update. This relies on the BGE's existing culling techniques.
+
+\subsection{Parallelize Pose Update}
+\todo{This is just copied from part of my report from Software Engineering. It needs to be cleaned up and better integrated.}
+
+I wanted to tackle this problem by making use of multi-core machines (most machines these days have at least two cores). At present, the BGE is singlethreaded, which means there is plenty of opportunity for parallelism. Looking at the following profiling data, it can be seen that ``Animations'' take 5.45ms (or 27\% of the frametime) and ``Rasterizer'' takes 13.72ms (or 69\% of the frametime).
+
+\medskip
+\begin{center}
+\includegraphics[scale=0.7]{serial_times}
+\end{center}
+
+At first glance, the Rasterizer looks like a much better spot to look at for optimization. However, of the two animation steps mentioned previously (update pose and deform mesh) the pose updating accounts for all of the time under Animations whereas the mesh deformations is only part of the Rasterizer time. The Rasterizer time also includes updating materials/shaders, actual time spent rendering, and others. Using Linux's perf, I can see that at most half of the Rasterizer time is spent on mesh deformation, which means closer to 7ms. However, the actual percentage looks closer to around thirty percent, which means we're only spending about 4-5ms on mesh deformation which puts it on par with pose updating. The mesh deformation is also a candidate for being done on the GPU (using a technique called hardware skinning), whereas the pose updating will always (for the foreseeable future) be done on the CPU. Therefore, pose updating is currently the better candidate for parallization.
+
+In the animation code, the following loop exists:
+
+\medskip
+\begin{center}
+\includegraphics[scale=0.9]{scene_anim_code}
+\end{center}
+
+As can be seen from the code, this is just a simple loop. If the KX\_GameObject::UpdateActionManager() call is independent (which it really should be), then we can just parallelize this loop using OpenMP's parallel for like the following code:
+
+\medskip
+\begin{center}
+\includegraphics[scale=0.9]{ketsji_engine_anim_code_par}
+\end{center}
+
+
+However, a quick test shows that this naïve approach doesn't work and there is some data sharing going on. KX\_GameObject is composed of a BL\_ActionManager, which aggregates BL\_Actions. Those BL\_Action objects make use of a BL\_ArmatureObject (a derived class of KX\_GameObject) to handle pose updates. The BL\_ArmatureObject keeps a reference to some Blender (not BGE) data. This includes the Blender bArmature and Object. Since my test case is a set of duplicated objects, all of the BL\_ArmatureObject instances make use of the same bArmature and Object reference, which causes problems. Therefore, BL\_ArmatureObject needed to create a copy of the Armature and Object it was holding a reference too, and, since this is C/C++, BL\_ArmatureObject also needed to free those copies in it's destructor. This works with one object, but as we had talked about in class, the next problem came with replicating (cloning) the object. However, after getting the single instance working, getting replication working was more of the same.
+
+At this point, there was some extra pose copying going on in the BL\_Action object that was no longer needed since the whole Armature object was copied, but it was causing memory problems. Therefore, I just removed the pose copying.
+
+\subsubsection{Results}
+As can be seen by the following graphs, there was an overall 30-40\% performance increase (lower frametime) with about a three times speedup in the newly threaded region (animations).
+
+\medskip
+\begin{center}
+\includegraphics[scale=0.6]{time_comparison}
+\end{center}
+
+\medskip
+\begin{center}0
+\includegraphics[scale=0.6]{speedup}
+\end{center}
+
+The test file appears to be behaving correctly and there are no crashes. Furthermore, tests on existing features such as animation blending show that the features still work. Using Helgrind, a tool to check for threading issues such as deadlock and race conditions, only one error is still being reported. It has to deal with the BL\_Action objects holding a reference to Blender's bAction object. This object will probably have to be copied in a similar fashion as the bArmature object had to be copied. However, unlike the BL\_ArmatureObject and bArmature, BL\_Action can change its bAction at runtime and excessive copying should be avoided. Therefore, a bit more though needs to be placed into solving this final Helgrind error.
+
+\bibliographystyle{plain}
+\bibliography{library}
+
+\end{document}
+
+% Seeing as it is almost August, I figure I've done enough screwing around, and it's time to buckle down and get some work done on my thesis. The first thing I need to do is get a better idea of what it is I'm doing. When we last met, I was still unsure how effective multi-threading the Blender Game Engine (BGE) would be since the GPU is more often the bottleneck than the CPU. I'm thinking that it may be best to focus on improving performance of one area that I know is CPU bound: Skeletal Animations. My objectives would be as follows:
+%
+%   * Parallelize pose updates (this has already been done as part of Software Engineering, but it still needs some more cleanup + fixing)
+%   * Parallelize the process of deforming the mesh to the new pose (also known as skinning)
+%   * Implement hardware skinning as an option (this moves the skinning step to the GPU)
+%   * Animation culling: only handle animation updates for visible meshes (I recently implemented this and committed it to Blender trunk)
+%   * Other possible optimizations in the pose updates:
+%       * Minimize lookups to Blender's RNA (e.g., lookup location instead of location.x, location.y, location.z). This is something that I have also done in the past, which yielded good results, but I never committed it.
+%       * Blender's pose animation nor RNA (an integral part of Blender that animations rely on) were written with speed in mind, so I'm certain more opportunities for optimization exist (such as caching lookups), but I would need to do more digging.
+%
+% I have done some previous work on animations in the BGE as part of Google Summer of Code 2011, which included
+%   * Adding a Python API for animations
+%   * Unifying various animation types into a single interface (IPO/fcurve, skeletal, shape actions)
+%   * Added animation layers and layer blending
+%   * Added the ability to handle animation updates at a separate framerate than the rendering (e.g., 30fps animation updates for a game running at 60fps), which gave a good performance boost for common cases
+%   * Added new skinning code that was optimized for the BGE (previously the BGE just used Blender's skinning code, which favored accuracy and features)
+%
+% There are some more animation tools that I would like to add to Blender/BGE such as procedural animation blending and a feature like Unreal's Matinee, but those would be out of the scope of improving the performance of the BGE's skeletal animations.
+%
+% What are your thoughts on this? I can do a nicer write-up (with intro, objectives, background, etc) if you think this is worth pursuing. We can also meet in-person to discuss this further if you'd like.
+%
+% Thanks,
+% Mitchell

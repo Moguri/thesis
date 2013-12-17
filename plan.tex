@@ -1,0 +1,178 @@
+\documentclass[]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{minted}
+\usepackage{cite}
+\usepackage{caption}
+\usepackage{color}
+
+\newcommand{\fig}[4] {
+\begin{center}
+    \includegraphics[scale=#2]{#1}
+  \captionof{figure}{#3}\label{fig:#4}
+\end{center}
+}
+
+
+% Setup some pretty code listings
+\definecolor{codebg}{rgb}{0.9, 0.9, 0.9}
+\newcommand{\includecode}[3] {
+\begin{center}
+ \inputminted[tabsize=4,
+              bgcolor=codebg
+ ]{#1}{code/#2.#1}
+ \captionof{listing}{#3}
+ \label{lst:#2}
+\end{center}
+}
+\newcommand{\includecpp}[2] {\includecode{cpp}{#1}{#2}}
+\newcommand{\includeglsl}[2] {\includecode{glsl}{#1}{#2}}
+
+\title{Game Plan}
+\author{Mitchell Stokes}
+
+\begin{document}
+
+\maketitle
+
+\section{Goals}
+
+\begin{enumerate}
+ \item Animation culling: only handle animation updates for visible meshes (I recently implemented this and committed it to Blender trunk)
+ \item Parallelize pose updates (this has already been done as part of Software Engineering, but it still needs some more cleanup + fixing)
+ \item Parallelize the process of deforming the mesh to the new pose (also known as skinning)
+ \item Implement hardware skinning as an option (this moves the skinning step to the GPU using a GLSL vertex shader)
+ \item Other possible optimizations in the pose updates:
+    \begin{enumerate}
+      \item Minimize lookups to Blender's RNA (e.g., lookup location instead of location.x, location.y, location.z). This is something that I have also done in the past, which yielded good results, but I never committed it.
+      \item Neither Blender's pose animation nor RNA (an integral part of Blender that animations rely on) were written with speed in mind, so I'm certain more opportunities for optimization exist (such as caching lookups), but I would need to do more digging.
+    \end{enumerate}
+\end{enumerate}
+
+\section{Background}
+
+\subsection{Skinning}
+
+One popular method used to drive character animations is to use a set of bones (also known as joints) called a skeleton (or armature) to deform a mesh. Each vertex has a set of weights, which sum to one, to determine the amount of influence each bone has on that vertex. To deform the mesh using the skeleton, iterate over every vertex and transform the vertex using a weighted sum of the transform matrices of the bones that influence the given vertex. In other words, a vertex's transform can be defined as:\[\sum_b{I_bT_b}\] where $b$ is a bone, $I_b$ is the influence of $b$ on the vertex and $T_b$ is the transform matrix of the bone. These calculations must be done every time the pose of the skeleton is updated to create a new set of positions for the meshes vertexes. When rendering the mesh this also means that the vertex data needs to be resent to the graphics card if the skinning calculations were done on the CPU.
+
+Hardware skinning avoids this extra copy by moving the skinning step from the CPU to the GPU. This also allows the skinning calculation to benefit from the impressive parallelization offered by modern graphics hardware. Another benefit is that the skeletal mesh can be treated as static geometry since all of the deformations are done on the GPU. This allows options such as display lists and VBOs to be used to increase rendering performance. Hardware skinning is usually implemented as a vertex shader, which is a piece of code executed on the GPU for every vertex in a mesh. The OpenGL Shading Language (GLSL) will be the shading language used in this work. An example GLSL vertex shader from version 9.52 of Nvidia's graphics SDK\cite{nvidiasdk} is shown in listing~\ref{lst:nv_skinning}.
+
+\includeglsl{nv_skinning}{Example vertex shader for hardware skinning from Nvidia's graphics SDK}
+
+Attributes are per-vertex values while uniforms are global values. Typically uniforms will be changed per-material or per-mesh. The Nvidia example has a maximum of four bones influencing each vertex, which is why weights and indexes are stored in vec4 data types. It also imposes a limit of thirty bones for the whole skeleton. Currently the BGE imposes no such limits, therefore other methods of transferring the data from the CPU to GPU that do not impose a preset limit might have to be explored. Some topics to look into include uniform buffer objects and texture buffer objects.
+
+In the Nvidia shader, the mat44 variable stores a bone's four-by-four transform matrix (orientation, position and scale), which is multiplied against the current vertex's vec4 position value. The mat33 variable is a three-by-three orientation matrix constructed from the bone's transform matrix, and it is multiplied against the current vertex's vec3 normal value.
+
+\subsection{BGE Overview}
+\label{sec:bge_overview}
+
+\fig{uml/bge_activity}{0.5}{UML activity diagram for the BGE's main loop}{bge_main_loop}
+
+Figure~\ref{fig:bge_main_loop} shows a simplified version of the BGE's main loop. As can be seen, every frame the BGE has roughly four main tasks: update logic, update physics, update animations, and render. The focus of this thesis is to improve the performance of the animation updates, specifically when dealing with skeletal meshes. The code for updating animations can be seen in listing~\ref{lst:anim_code}.
+
+\includecpp{anim_code}{BGE animation code}
+
+To handle animations, the BGE makes use of various classes, which are shown in figure~\ref{fig:bge_class}. For discussion purposes, the prefixes will be left off of the class names.
+
+\fig{uml/bge_class}{0.5}{UML class diagram of classes needed for animations in the BGE}{bge_class}
+
+The Scene class contains an aggregate, called m\_objectlist, of all of the GameObjects in the scene (CListValue is a wrapper around C++'s vector class). Some of those objects can also be present in m\_animatedlist, which is iterated in Scene::UpdateAnimations(). ArmatureObjects represent skeletons that we may or may not want to animate, and DeformableObjects are ones with deform-able meshes. A handful of deformers exist in the BGE, but the SkinDeformer is the only one of interest for skeletal mesh animations. The SkinDeformer will deform the mesh based off of the current pose of an ArmatureObject (usually the mesh's parent object). A Deformer is updated during the render stage while ArmatureObjects are updated during the animation stage.
+
+The ArmatureObject contains Blender data in the form of bArmature and bPose references. Every ArmatureObject that uses the same skeleton will also point to the same bArmature. All ArmatureObjects make copy of their bArmature's bPose. In order to actually update the pose, the bArmature's bPose reference is saved and replaced with the ArmatureObject's bPose, and then some Blender functions are called to animate the bArmature. The bArmature's original reference is then restored. The code that performs this update (as well as some blending) is shown in listing~\ref{lst:anim_pose_update}.
+
+\includecpp{anim_pose_update}{Pose update performed as part of BL\_Action::Update()}
+
+The SkinDeformer contains two functions for handling the mesh deformations that are exposed to the user as ``Vertex Deformers'': BlenderDeformVerts() and BGEDeformVerts(). Originally the SkinDeformer would make calls into Blender code to handle the deformation. Later a ``BGE Vertex Deformer'' (the original code was used to create the BlenderDeformVerts() function) was added to focus on speed over accuracy, and it decreases the frametime of an animation heavy scene by about 30\%. However, it lacks some features such as support for Blender's B-Bones, and it has less accurate normal calculations. Hardware skinning will require adding another deformer function, which is discussed more in section~\ref{sec:hardware_skinning}.
+
+When setting up a skeletal mesh in Blender, a mesh and skeletal are first both created. Then, the mesh is ``parented'' to the skeleton. Thus, a mesh has at most one skeleton deforming it, but a skeleton can deform many meshes. However, in most cases this is simply a one-to-one relationship.
+
+\subsection{Measuring}
+
+Frame time is the primary way to measure performance, and it is the time to complete one frame (logic, physics, animations, rendering, etc.), and is usually measured in milliseconds. Another metric is frames per second (fps), which is the inverse of the frame time. One problem with fps is that it is non-linear, and stating a performance gain in terms of fps means little. Frame time gives a consistent measurement, and will be used to measure performance gains in this work.
+
+The primary benchmark scene consists of forty skeletal meshes. Each skeleton has sixty-nine bones, and each mesh has 4,951 vertexes. A screenshot of this setup is displayed in figure~\ref{fig:anim_bench}.
+
+\fig{imgs/anim_bench}{0.5}{Screenshot of the benchmark scene.}{anim_bench}
+
+Measurements will be taken on a machine with an Intel Core i7 Q 740 CPU running at 1.73GHz with 8GB of RAM and an Nvidia GT 425M GPU. The benchmark scene will be run through the stand-alone Blenderplayer instead of the embedded player using the following settings:
+\begin{verbatim}
+blenderplayer -w 1600 900 -g show_framerate = 1 -g show_profile = 1 anim_stress.blend
+\end{verbatim}
+
+For doing more detailed profiling than what the BGE's built-in profiler allows for, gperftools\cite{gperftools} will be used.
+
+\section{Work}
+
+\subsection{Animation Culling}
+
+The code shown in listing~\ref{lst:anim_code} does not take into account if the animated object will actually be visible. This means that animation updates can be performed that have no visual impact, but still consume resources. Regular object animations are much quicker in comparison to skeletal mesh animations, which means culling them isn't as important. This simplifies the culling calculation since we can make some assumptions about skeletal meshes. A skeletal mesh should have an armature and have a child mesh. If all of these child meshes were culled, then we do not need to bother with updating the pose or the mesh since they will not be visible. An example of what this code looks like is provided in listing~\ref{lst:anim_code_culling}.
+
+\includecpp{anim_code_culling}{BGE animation code with culling}
+
+\subsection{Parallel Pose Update}
+
+The juggling of the bPose reference of bArmature described in section~\ref{sec:bge_overview} saves memory, but it poses a problem when attempting to perform the pose updates in parallel. In order to solve this, ArmatureObjects will need to have a unique bArmature, which they do not share with other ArmatureObjects. This should allow the pose updates to be independent.
+
+Once the pose updates are independent of other pose updates, OpenMP\cite{openmp} can be used to parallelize the loop found in Scene::UpdateAnimations(). OpenMP's parallel for construct can be used, which also provides various scheduling options. These scheduling options should be explored for better load balancing of the threads. Some iterations of the loop that are not updating skeletal mesh animations will be completed much quicker.
+
+After the loop has been parallelized by OpenMP, Helgrind (part of the Valgrind suite\cite{valgrind}) can be used to check for threading errors. As noted in section 7.5 (``Hints and Tips for Effective Use of Helgrind'')\cite{hgmanual}, GCC needs to be built with the --disable-linux-futex option for accurate output when using OpenMP.
+
+In the benchmark, pose updates account for no more than fifty-three percent of the frametime. Using Amdahl's law, this gives us a theoretical maximum speedup, $S$, of:
+\[
+ S(n) = \frac{1}{\left(1 - P\right) + \frac{1}{n} P}
+ = \frac{1}{0.6025}
+ \approx 1.6597 \approx 66%
+\]
+
+Actual: $\approx28.2\%$
+
+
+\subsection{Parallel Mesh Update}
+
+The mesh updates are not in a convenient loop such as the loop for the pose updates. However, the call to SkinDeformer::Update() could be called in the Scene::UpdateAnimations() loop. It would get called again when rendered, but the deformer already has checks that would prevent it from being updated again. This would also allow pose and mesh updates to both show up under the ``Animation'' category in the BGE's profiler (the mesh update is currently part of the ``Rasterizer'' time). Once the mesh update has been added to the Scene::UpdateAnimations() loop, the calls SkinDeformer::Update() will need to be checked to ensure they are independent. Helgrind can help with this.
+
+In the benchmark, mesh updates account for no more than thirty percent of the frametime. Using Amdahl's law, this gives us a theoretical maximum speedup, $S$, of:
+\[
+ S(n) = \frac{1}{\left(1 - P\right) + \frac{1}{n} P}
+ = \frac{1}{0.775}
+ \approx 1.2903 \approx 29\%
+\]
+
+Actual: $\approx17\%$
+
+For multiple enhancements (e.g., both the parallel pose and parallel mesh enhancements), Amdahl's law can be written as:
+\[
+ S(n) = \frac{1}{1 - \sum{P_i} + \frac{1}{n} \sum{P_i}}
+\]
+In other words, the total parallel time of eighty-three percent can be used for the calculations resulting in a theoretical maximum speedup, $S$, of:
+\[
+ S(n) = \frac{1}{\left(1 - P\right) + \frac{1}{n} P}
+ = \frac{1}{0.3775}
+ \approx 2.6490 \approx 165%\%
+\]
+
+Actual: $\approx 140\%$
+
+
+\subsection{Hardware Skinning}
+\label{sec:hardware_skinning}
+
+To implement hardware skinning, a new vertex deformer type will need to be added to the SkinDeformer. Also, each vertex deformer will need to be responsible for its own data. At the moment the Blender and the BGE vertex deformers handle vertex data in similar ways, but hardware skinning doesn't need to copy data, and instead send that data to the GPU. Various techniques will need to be explored for sending that data to the GPU, but an initial approach could involve a uniform array of matrices as shown in the Nvidia example in listing~\ref{lst:nv_skinning}.
+
+\subsubsection{Uniform Components}
+
+In OpenGL/GLSL, there is a hardware limit on the number of uniform components that a shader can use. A ``component'' is essentially a float, so every float sent as a uniform to a shader uses up a component. To work nicely with the rest of Blender's vertex shader, the bone matrix data of the hardware skinning should use no more than half of the available components. Each matrix uses up 16 components. Modern (SM4+) cards typically have 4096 components. which would give us 2048 components for bone matrices, which gives us 128 matrices. Older cards tend to have 1024 components or less, giving us a maximum of only 64 bone matrices on these graphics cards. Texture buffer objects could be used to get around component limits, but they are not supported on these older cards, and 128 matrices is an okay limit on bones.
+
+\subsection{Other Optimizations}
+
+After the other optimizations listed have been implemented, further research can be done into more optimizations. These would be more focused and probably offer less performance gains than the other listed techniques. Some low hanging fruit probably exists, but they need to be found first.
+
+
+\clearpage
+
+\bibliographystyle{plain}
+\bibliography{library}
+
+\end{document}

@@ -1,0 +1,37 @@
+\section{Methods}
+
+\subsection{Benchmark Platform}
+\begin{itemize}
+ \item Arch Linux (3.12.2l 64bit kernel)
+ \item Intel Core i7 Q 740 CPU running at 1.73GHz
+ \item 8GB of DDR3 RAM
+ \item Nvidia GT 425M GPU
+ \item GCC 4.8.2
+\end{itemize}
+
+\subsection{Benchmark Scene}
+\begin{itemize}
+ \item 180 Skeletal Meshes
+ \item Each skeleton has sixty-nine bones, and each mesh has 4,951 vertexes
+ \item Directions for running the scene
+\end{itemize}
+
+The benchmark scene will be run through the stand-alone Blenderplayer instead of the embedded player using the following settings:
+\begin{verbatim}
+blenderplayer -w 1600 900 -g show_framerate = 1 -g show_profile = 1 anim_stress.blend
+\end{verbatim}
+
+\subsection{Measuring Performance}
+\begin{itemize}
+ \item BGE profiler for frametime/fps
+ \item gperftools for profiling
+ \item nvidia-smi for measuring GPU utilization
+\end{itemize}
+
+\subsection{Verification}
+\begin{itemize}
+ \item Helgrind for detecting threading errors
+ \item Valgrind for detecting memory errors
+\end{itemize}
+
+Helgrind (part of the Valgrind suite\cite{valgrind}) can be used to check for threading errors. Since OpenMP is being used for parts of this work, as noted in section 7.5 (``Hints and Tips for Effective Use of Helgrind'')\cite{hgmanual}, GCC needs to be built with the --disable-linux-futex option for accurate output when using OpenMP.

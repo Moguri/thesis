@@ -1,0 +1,102 @@
+\section{Background}
+
+\subsection{OpenGL and GLSL}
+\begin{itemize}
+ \item OpenGL is an API to communicate with graphics hardware
+ \item GLSL is a high-level shading language used by OpenGL
+\end{itemize}
+
+\subsection{Skeletal Mesh Animation}
+\begin{itemize}
+ \item Discuss bones/skeleton/armature and meshes
+ \item Bone rotation and position stored in a 4x4 transform matrix
+\end{itemize}
+
+One popular method used to drive character animations is to use a set of bones (also known as joints) called a skeleton (or armature) to deform a mesh. Each vertex has a set of weights, which sum to one, to determine the amount of influence each bone has on that vertex. To deform the mesh using the skeleton, iterate over every vertex and transform the vertex using a weighted sum of the transform matrices of the bones that influence the given vertex. In other words, a vertex's transform can be defined as:\[\sum_b{I_bT_b}\] where $b$ is a bone, $I_b$ is the influence of $b$ on the vertex and $T_b$ is the transform matrix of the bone. These calculations must be done every time the pose of the skeleton is updated to create a new set of positions for a mesh's vertexes. When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU.
+
+A technique referred to as hardware skinning avoids this extra copy by moving the skinning step from the CPU to the GPU. This also allows the skinning calculation to benefit from the impressive parallelization offered by modern graphics hardware. Another benefit is that the skeletal mesh can be treated as static geometry since all of the deformations are done on the GPU. This allows options such as display lists and VBOs to be used to increase rendering performance. Hardware skinning is usually implemented as a vertex shader, which is a piece of code executed on the GPU for every vertex in a mesh. The OpenGL Shading Language (GLSL) will be the shading language used in this work. An example GLSL vertex shader from version 9.52 of Nvidia's graphics SDK\cite{nvidiasdk} is shown in listing~\ref{lst:nv_skinning}.
+
+\includeglsl{nv_skinning}{Example vertex shader for hardware skinning from Nvidia's graphics SDK}
+
+Attributes are per-vertex values while uniforms are global values. Typically uniforms will be changed per-material or per-mesh. The Nvidia example has a maximum of four bones influencing each vertex, which is why weights and indexes are stored in vec4 data types. It also imposes a limit of thirty bones for the whole skeleton. Currently the BGE imposes no such limits, therefore other methods of transferring the data from the CPU to GPU that do not impose a preset limit may have to be explored.
+
+In the Nvidia shader, the mat44 variable stores a bone's four-by-four transform matrix (orientation, position and scale), which is multiplied against the current vertex's vec4 position value. The mat33 variable is a three-by-three orientation matrix constructed from the bone's transform matrix, and it is multiplied against the current vertex's vec3 normal value.
+
+\subsection{Blender and the BGE}
+\begin{itemize}
+ \item Overview of the BGE animation and skinning code
+ \item BGE prefixes
+ \item Blender's DNA and RNA systems
+\end{itemize}
+
+\subsubsection{Class Prefixes}
+Blender and the BGE are broken down into many modules. Functions and classes from these modules often have a prefix to help identify them (these prefixes also act as a poor-man's namespace to avoid name conflicts). In the BGE the following prefixes can be found:
+
+\begin{description}
+ \item[BL] Items closely tied to Blender. These are mostly found in the converter.
+ \item[SCA] Generic game engine code. This handles a lot of generic logic and most of the BGE's logic brick system. The prefix comes from the BGE's Sensor, Controller, Actuator architecture for logic bricks.
+ \item [KX] These items tend to be BGE specific code. The name comes from Ketsji, which was an old name for the BGE.
+ \item [KX\_SCA] These items blur the line between SCA and KX items. They should probably belong in one prefix or the other.
+ \item [SG] These items belong to the BGE's scenegraph code.
+ \item [RAS] These items belong to the BGE's rasterization, or rendering, code.
+ \item [PHY] These items belong to the BGE's generic physics interface.
+\end{description}
+
+Some prefixes from Blender that one might see used in BGE code include:
+
+\begin{description}
+ \item [BLF] Blender font handling code.
+ \item [BKE] Blender kernel, code. This contains most of the code to actually manipulate Blender data.
+ \item [BLI] Contains useful data structures such as linked lists, trees, etc.
+ \item [BLO] Blender file loading code.
+ \item [GPU] Blender GPU rendering code that is primarily used for the viewport. This module is sometimes referred to as bf\_gpu when talking about rendering to differentiate it from general gpu code/programming (e.g., OpenGL).
+ \item [DNA] Blender struct definition. Refer to section~\ref{sec:bf_dna_rna} for more details.
+ \item [RNA] Description layer for DNA. Refer to section~\ref{sec:bf_dna_rna} for more details.
+\end{description}
+
+\subsubsection{Blender and DNA/RNA}
+\label{sec:bf_dna_rna}
+\todo{Check out the Blender wiki for better DNA/RNA explanations.}
+
+Blender contains two systems for storing and manipulating data, these are DNA and RNA. DNA is responsible for storing (and ultimately saving) Blender data, while RNA describes the DNA data and how it can be accessed. In other words, DNA values are modified via RNA. Blender's animation system uses this RNA for writing out new pose data. Unfortunately looking up RNA values and modifying them where never optimized for speed. Therefore, these operations can be slow, and comprise a bulk of the pose updating time in Blender/BGE. \todo{Maybe generate a callgraph to show this is the case?}
+
+
+\subsubsection{BGE Animation Code}
+\label{sec:bge_overview}
+
+\fig{uml/bge_activity}{0.5}{UML activity diagram for the BGE's main loop}{bge_main_loop}
+
+Figure~\ref{fig:bge_main_loop} shows a simplified version of the BGE's main loop. As can be seen, every frame the BGE has roughly four main tasks: update logic, update physics, update animations, and render. The focus of this thesis is to improve the performance of the animation updates, specifically when dealing with skeletal meshes. The code for updating animations can be seen in listing~\ref{lst:anim_code}.
+
+\includecpp{anim_code}{BGE animation code}
+
+To handle animations, the BGE makes use of various classes, which are shown in figure~\ref{fig:bge_class}. For discussion purposes, the prefixes will be left off of the class names.
+
+\fig{uml/bge_class}{0.5}{UML class diagram of classes needed for animations in the BGE}{bge_class}
+
+The Scene class contains an aggregate, called m\_objectlist, of all of the GameObjects in the scene (CListValue is a wrapper around C++'s vector class). Some of those objects can also be present in m\_animatedlist, which is iterated in Scene::UpdateAnimations(). ArmatureObjects represent skeletons that we may or may not want to animate, and DeformableObjects are ones with deform-able meshes. A handful of Deformers exist in the BGE, but the SkinDeformer is the only one of interest for skeletal mesh animations. The SkinDeformer will deform the mesh based off of the current pose of an ArmatureObject (usually the mesh's parent object). A Deformer is updated during the render stage while ArmatureObjects are updated during the animation stage.
+
+The ArmatureObject contains Blender data in the form of bArmature and bPose references. Every ArmatureObject that uses the same skeleton will also point to the same bArmature. All ArmatureObjects make copy of their bArmature's bPose. In order to actually update the pose, the bArmature's bPose reference is saved and replaced with the ArmatureObject's bPose, and then some Blender functions are called to animate the bArmature. The bArmature's original reference is then restored. The code that performs this update (as well as some blending) is shown in listing~\ref{lst:anim_pose_update}.
+
+\includecpp{anim_pose_update}{Pose update performed as part of BL\_Action::Update()}
+
+The SkinDeformer contains two functions for handling the mesh deformations that are exposed to the user as ``Vertex Deformers'': BlenderDeformVerts() and BGEDeformVerts(). Originally the SkinDeformer would make calls into Blender code to handle the deformation. Later a ``BGE Vertex Deformer'' (the original code was used to create the BlenderDeformVerts() function) was added to focus on speed over accuracy, and it decreases the frame time of an animation heavy scene by about 30\%. However, it lacks some features such as support for Blender's B-Bones, and it has less accurate normal calculations.
+
+When setting up a skeletal mesh in Blender, a mesh and skeletal are first both created. Then, the mesh is ``parented'' to the skeleton. Thus, a mesh has at most one skeleton deforming it, but a skeleton can deform many meshes. However, in most cases this is simply a one-to-one relationship.
+
+\subsection{OpenMP}
+\begin{itemize}
+ \item Used for threading
+ \item Uses pragmas and requires compiler support
+\end{itemize}
+
+
+
+%% Currently covered by the Skeletal Mesh Animation subsection
+% \subsection{Hardware Skinning}
+% \begin{itemize}
+%  \item Moves the skinning step to the GPU
+%  \item Allows skeletal mesh to be treated as ``static'' geometry, which is faster to render
+%  \item Usually implemented as a vertex shader
+% \end{itemize}
+%

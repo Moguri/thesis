@@ -1,0 +1,75 @@
+\section{Work}
+\subsection{Multithreading}
+\subsubsection{Parallel Pose Updates}
+\begin{itemize}
+ \item Copy bArmature and bAction data
+ \item Give BL\_ArmatureObject control over poses
+ \item Parallelize with OpenMP parallel for
+\end{itemize}
+
+\todo{Change verb tense}
+
+The juggling of the bPose reference of bArmature described in section~\ref{sec:bge_overview} saves memory, but it causes race conditions when attempting to perform the pose updates in parallel. In order to solve this, ArmatureObjects need to have a unique bArmature, which they do not share with other ArmatureObjects. This should allow the pose updates to be independent.
+
+Once the pose updates were made independent of other pose updates, OpenMP\cite{openmp} was used to parallelize the loop found in Scene::UpdateAnimations(). OpenMP's parallel for construct was, which also provides various scheduling options. These scheduling options could be explored for better load balancing of the threads. Some iterations of the loop that are not updating skeletal mesh animations will be completed much quicker.
+
+\todo{Explore scheduling options for load balancing mixed (skeletal mesh and object animations) scenes}
+
+\subsubsection{Parallel Software Skinning}
+\begin{itemize}
+ \item Move code from BL\_SkinDeformer::Apply() to BL\_SkinDeformer::Update()
+ \item Parallelize with OpenMP parallel for
+ \item Combined with Parallel Pose Updates loop
+\end{itemize}
+
+\subsection{Hardware Skinning}
+\begin{itemize}
+ \item Needed to reuse existing vertex generation code in Blender
+ \item Implemented new deformer type for BL\_SkinDeformer for hardware skinning
+ \item Limits: 4 bone influences per vertex, min(128, GL\_MAX\_VERTEX\_UNIFORM\_COMPONENTS/2) bones per mesh
+ \item Fallback to software skinning if hardware cannot handle the skinning
+ \item TBOs researched to overcome bone limit, but not supported on older cards that could benefit from it
+ \item Requires GLSL mode, doesn't work with shadows
+\end{itemize}
+
+\label{sec:hardware_skinning}
+
+To implement hardware skinning, a new vertex deformer type was added to the SkinDeformer, and each vertex deformer was made responsible for its own data. Previously, the Blender and BGE vertex deformers handle vertex data in similar ways, but hardware skinning does not need to copy data, and instead it sends that data to the GPU. Currently the bone data is sent to the GPU as a uniform array of four-by-four transform matrices.
+
+\todo{Discuss bandwidth issues with transform matrices versus dual-quaternions}
+
+\subsubsection{Uniform Components}
+
+In OpenGL/GLSL, there is a hardware limit on the number of uniform components that a shader can use. A ``component'' is essentially a float, so every float sent as a uniform to a shader uses up a component. To work nicely with the rest of Blender's vertex shader, the bone matrix data of the hardware skinning needs ensure that it does not use too many of the available components. If arbitrary limit is placed on the done matrix data to only use half of the available components, then plenty of room is left for other potential uniforms in the vertex shader. Modern (shader model 4+) cards typically have 4096 components, which would give 2048 components for bone matrices, which allows for 128 matrices (a four-by-four matrix is sixteen components). Older cards tend to have 1024 components or less, giving a maximum of only 64 bone matrices on these graphics cards. Texture buffer objects (TBOs) could be used to work around component limits\cite{ARB_texture_buffer_object}, but they are not supported on these older cards, and 128 matrices is an okay limit on bones for the newer cards that support TBOs.
+
+\subsubsection{Other Limitations}
+
+When using hardware skinning, each vertex can only have four bones influencing it. This limitation should work well enough in most cases. If a vertex has more than four bones influencing it, the four most influential bones are selected and their corresponding weights re-normalized. Hardware skinning also requires a specific vertex shader, and as such only works with the BGE's GLSL shader mode, and currently does not support custom shaders. If hardware skinning cannot be used, the skinning falls back to software skinning using the BGE vertex deformer.
+
+\todo{Double-check shadows and discuss shadow limitations}
+
+\subsection{Other Optimizations}
+\subsubsection{Animation Culling}
+\begin{itemize}
+ \item Don't update animations if the mesh is not visible
+ \item Do not cull if the armature has non-mesh children (these are always ``culled'' since they are not drawn)
+ \item Culling calculation is already done
+ \item Performance gains are variable
+\end{itemize}
+The original animation code shown in listing~\ref{lst:anim_code} does not take into account if the animated object will actually be visible. This means that animation updates can be performed that have no visual impact, but still consume resources. Regular object animations are much quicker in comparison to skeletal mesh animations, which means culling them is not as important. This simplifies the culling calculation since we can make some assumptions about skeletal meshes. A skeletal mesh should have an armature and zero or more children meshes. If the armature has any children meshes and all of these child meshes were culled, then we do not need to bother with updating the pose or the mesh since they will not be visible. An example of what this code (without any of the parallel improvements) looks like is provided in listing~\ref{lst:anim_code_culling}.
+
+\includecpp{anim_code_culling}{BGE animation code with culling}
+
+This adds very little to the overall cost of the animation code since the mesh culling is already being done. However, if some pose and mesh updates can be avoided we can save a fair amount of time. The exact savings is difficult to calculate since it is view dependent. \todo{I should be able to come up with some metric for this. Possibly comparing an empty scene versus a character heavy scene with none of the characters in the view. This would at least show the cost of performing the culling step.}
+
+\subsubsection{Bundled RNA Lookups}
+\begin{itemize}
+ \item Animation in Blender modifies RNA values
+ \item RNA array values were doing a slow lookup for each array element
+ \item Array values can be bundled into one lookup
+ \item ~1.5x performance improvement on large benchmark scene
+\end{itemize}
+
+As discussed in section~\ref{sec:bf_dna_rna}, updating poses requires using RNA to modify values, which can be slow. Looking up the RNA property is one of the more expensive parts of the RNA writing step. Every channel (e.g., X Position, Y Position, Z Position, etc) was being looked up as a separate property. However, RNA supports looking up and modifying an array (e.g., Position). Therefore, time can be saved by modifying arrays (one lookup per three to four writes) at a time instead of each channel individually (one lookup per write). In the heavy benchmark scene, this gives approximately a 1.5x performance improvement.
+
+\todo{Maybe ajjjjjjdd some code snippets?}

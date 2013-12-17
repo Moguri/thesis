@@ -1,0 +1,64 @@
+@startuml
+title BGE Main Loop
+
+start
+
+:Update Logic;
+:Update Physics;
+:Update Animations;
+:Render;
+
+end
+@enduml
+
+@startuml
+title Serial KX_Scene::UpdateAnimations
+
+start
+
+repeat
+	if (Culled) then (yes)
+	else (no)
+		:Update Pose;
+	endif
+repeat while (Animatable Objects\nRemaining)
+
+stop
+
+title  KX_Scene::UpdateAnimations
+@enduml
+
+@startuml
+title Parallel KX_Scene::UpdateAnimations
+
+start
+
+repeat
+	fork
+		if (Culled) then (yes)
+		else (no)
+			:Update Pose;
+		endif
+	end fork
+repeat while (Animatable Objects\nRemaining)
+
+end
+@enduml
+
+@startuml
+title Parallel KX_Scene::UpdateAnimations with Mesh Update
+
+start
+
+repeat
+	fork
+		if (Culled) then (yes)
+		else (no)
+			:Update Pose;
+			:Update Mesh;
+		endif
+	end fork
+repeat while (Animatable Objects\nRemaining)
+
+end
+@enduml
