@@ -72,4 +72,4 @@ This adds very little to the overall cost of the animation code since the mesh c
 
 As discussed in section~\ref{sec:bf_dna_rna}, updating poses requires using RNA to modify values, which can be slow. Looking up the RNA property is one of the more expensive parts of the RNA writing step. Every channel (e.g., X Position, Y Position, Z Position, etc) was being looked up as a separate property. However, RNA supports looking up and modifying an array (e.g., Position). Therefore, time can be saved by modifying arrays (one lookup per three to four writes) at a time instead of each channel individually (one lookup per write). In the heavy benchmark scene, this gives approximately a 1.5x performance improvement.
 
-\todo{Maybe ajjjjjjdd some code snippets?}
+\todo{Maybe add some code snippets?}
