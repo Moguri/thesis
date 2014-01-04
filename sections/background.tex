@@ -1,10 +1,12 @@
 \section{Background}
 
 \subsection{OpenGL and GLSL}
+\ifsummaries
 \begin{itemize}
  \item OpenGL is an API to communicate with graphics hardware
  \item GLSL is a high-level shading language used by OpenGL
 \end{itemize}
+\fi
 
 \todo{Fill out this section}
 
@@ -13,10 +15,12 @@
 \todo{Talk about information found in \cite{gpugems_28}.}
 
 \subsection{Skeletal Mesh Animation}
+\ifsummaries
 \begin{itemize}
  \item Discuss bones/skeleton/armature and meshes
  \item Bone rotation and position stored in a 4x4 transform matrix
 \end{itemize}
+\fi
 
 One popular method used to drive character animations is to use a set of bones (also known as joints) called a skeleton (or armature) to deform a mesh. Each vertex has a set of weights, which sum to one, to determine the amount of influence each bone has on that vertex. To deform the mesh using the skeleton, iterate over every vertex and transform the vertex using a weighted sum of the transform matrices of the bones that influence the given vertex. In other words, a vertex's transform can be defined as:\[\sum_b{I_bT_b}\] where $b$ is a bone, $I_b$ is the influence of $b$ on the vertex and $T_b$ is the transform matrix of the bone. These calculations must be done every time the pose of the skeleton is updated to create a new set of positions for a mesh's vertexes. When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU.
 
@@ -29,11 +33,13 @@ Attributes are per-vertex values while uniforms are global values. Typically uni
 In the NVIDIA shader, the mat44 variable stores a bone's four-by-four transform matrix (orientation, position and scale), which is multiplied against the current vertex's vec4 position value. The mat33 variable is a three-by-three orientation matrix constructed from the bone's transform matrix, and it is multiplied against the current vertex's vec3 normal value.
 
 \subsection{Blender and the BGE}
+\ifsummaries
 \begin{itemize}
  \item Overview of the BGE animation and skinning code
  \item BGE prefixes
  \item Blender's DNA and RNA systems
 \end{itemize}
+\fi
 
 \subsubsection{Class Prefixes}
 Blender and the BGE are broken down into many modules. Functions and classes from these modules often have a prefix to help identify them (these prefixes also act as a poor-man's namespace to avoid name conflicts). In the BGE the following prefixes can be found:
@@ -91,12 +97,14 @@ The SkinDeformer contains two functions for handling the mesh deformations that 
 When setting up a skeletal mesh in Blender, a mesh and skeletal are first both created. Then, the mesh is ``parented'' to the skeleton. Thus, a mesh has at most one skeleton deforming it, but a skeleton can deform many meshes. However, in most cases this is simply a one-to-one relationship.
 
 \subsection{OpenMP}
+\ifsummaries
 \begin{itemize}
  \item Used for threading
  \item Uses pragmas and requires compiler support
 \end{itemize}
+\fi
 
-
+\todo{Fill out this section}
 
 %% Currently covered by the Skeletal Mesh Animation subsection
 % \subsection{Hardware Skinning}

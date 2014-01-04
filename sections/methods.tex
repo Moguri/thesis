@@ -1,6 +1,8 @@
 \section{Methods}
 
 \subsection{Benchmark Platform}
+\label{sec:bench_platform}
+\ifsummaries
 \begin{itemize}
  \item Arch Linux (3.12.5 64bit kernel)
  \item Intel Core i7 Q 740 CPU running at 1.73GHz
@@ -8,13 +10,19 @@
  \item NVIDIA GeForce GT 425M GPU
  \item GCC 4.8.2
 \end{itemize}
+\fi
+
+\todo{Need something besides the summary here. Maybe a table? Or leave this as bullets? Either way, some text needs to be added to preface the information.}
 
 \subsection{Benchmark Scene}
+\label{sec:bench_scene}
+\ifsummaries
 \begin{itemize}
  \item 180 Skeletal Meshes
  \item Each skeleton has sixty-nine bones, and each mesh has 4,951 vertexes
  \item Directions for running the scene
 \end{itemize}
+\fi
 
 The scene used to benchmark performance changes is comprised of 180 skeletal meshes. Each of these skeletal meshes contains a sixty-nine bone armature and a mesh with 4,951 vertexes. All 180 skeletal meshes perform the same animation, which is a silly dance animation. A screenshot of the scene being run is shown in figure~\ref{fig:anim_bench}.
 
@@ -28,17 +36,23 @@ blenderplayer -w 1600 900 -g show_framerate = 1 -g show_profile = 1 anim_stress.
 \todo{While the mentioned scene works well for benchmarking purposes, it's consistency does not work as well for verification testing since each skeletal mesh is playing the same action at the same time. Random starts and actions would provide a better scene for testing.}
 
 \subsection{Measuring Performance}
+\ifsummaries
 \begin{itemize}
  \item BGE profiler for frametime/fps
  \item gperftools for profiling
  \item nvidia-smi for measuring GPU utilization
 \end{itemize}
+\fi
+
+\todo{Fill out this section}
 
 \subsection{Verification}
+\ifsummaries
 \begin{itemize}
  \item Helgrind for detecting threading errors
  \item Valgrind for detecting memory errors
 \end{itemize}
+\fi
 
 Helgrind (part of the Valgrind suite\cite{valgrind}) can be used to check for threading errors. Since OpenMP is being used for parts of this work, as noted in section 7.5 (``Hints and Tips for Effective Use of Helgrind'')\cite{hgmanual}, GCC needs to be built with the \texttt{--disable-linux-futex} option for accurate output when using OpenMP.
 

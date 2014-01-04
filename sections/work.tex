@@ -1,11 +1,13 @@
 \section{Work}
 \subsection{Multithreading}
 \subsubsection{Parallel Pose Updates}
+\ifsummaries
 \begin{itemize}
  \item Copy bArmature and bAction data
  \item Give BL\_ArmatureObject control over poses
  \item Parallelize with OpenMP parallel for
 \end{itemize}
+\fi
 
 \todo{The following section needs to be expanded on. It talks about juggling bPose references and then says a unique bArmature is required, which is confusing}
 
@@ -18,15 +20,18 @@ Once the pose updates were made independent of other pose updates, OpenMP\cite{o
 \todo{Provide some code examples?}
 
 \subsubsection{Parallel Software Skinning}
+\ifsummaries
 \begin{itemize}
  \item Move code from BL\_SkinDeformer::Apply() to BL\_SkinDeformer::Update()
  \item Parallelize with OpenMP parallel for
  \item Combined with Parallel Pose Updates loop
 \end{itemize}
+\fi
 
 \todo{Fill out this section}
 
 \subsection{Hardware Skinning}
+\ifsummaries
 \begin{itemize}
  \item Needed to reuse existing vertex generation code in Blender
  \item Implemented new deformer type for BL\_SkinDeformer for hardware skinning
@@ -35,6 +40,7 @@ Once the pose updates were made independent of other pose updates, OpenMP\cite{o
  \item TBOs researched to overcome bone limit, but not supported on older cards that could benefit from it
  \item Requires GLSL mode, doesn't work with shadows
 \end{itemize}
+\fi
 
 \label{sec:hardware_skinning}
 
@@ -54,12 +60,15 @@ When using hardware skinning, each vertex can only have four bones influencing i
 
 \subsection{Other Optimizations}
 \subsubsection{Animation Culling}
+\ifsummaries
 \begin{itemize}
  \item Don't update animations if the mesh is not visible
  \item Do not cull if the armature has non-mesh children (these are always ``culled'' since they are not drawn)
  \item Culling calculation is already done
  \item Performance gains are variable
 \end{itemize}
+\fi
+
 The original animation code shown in listing~\ref{lst:anim_code} does not take into account if the animated object will actually be visible. This means that animation updates can be performed that have no visual impact, but still consume resources. Regular object animations are much quicker in comparison to skeletal mesh animations, which means culling them is not as important. This simplifies the culling calculation since we can make some assumptions about skeletal meshes. A skeletal mesh should have an armature and zero or more children meshes. If the armature has any children meshes and all of these child meshes were culled, then we do not need to bother with updating the pose or the mesh since they will not be visible. An example of what this code (without any of the parallel improvements) looks like is provided in listing~\ref{lst:anim_code_culling}.
 
 \includecpp{anim_code_culling}{BGE animation code with culling}
@@ -67,12 +76,14 @@ The original animation code shown in listing~\ref{lst:anim_code} does not take i
 This adds very little to the overall cost of the animation code since the mesh culling is already being done. However, if some pose and mesh updates can be avoided we can save a fair amount of time. The exact savings is difficult to calculate since it is view dependent. \todo{I should be able to come up with some metric for this. Possibly comparing an empty scene versus a character heavy scene with none of the characters in the view. This would at least show the cost of performing the culling step.}
 
 \subsubsection{Bundled RNA Lookups}
+\ifsummaries
 \begin{itemize}
  \item Animation in Blender modifies RNA values
  \item RNA array values were doing a slow lookup for each array element
  \item Array values can be bundled into one lookup
  \item ~1.5x performance improvement on large benchmark scene
 \end{itemize}
+\fi
 
 As discussed in section~\ref{sec:bf_dna_rna}, updating poses requires using RNA to modify values, which can be slow. Looking up the RNA property is one of the more expensive parts of the RNA writing step. Every channel (e.g., X Position, Y Position, Z Position, etc) was being looked up as a separate property. However, RNA supports looking up and modifying an array (e.g., Position). Therefore, time can be saved by modifying arrays (one lookup per three to four writes) at a time instead of each channel individually (one lookup per one write). In the heavy benchmark scene, this gives approximately a 1.5x performance improvement.
 
