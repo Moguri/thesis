@@ -24,7 +24,10 @@
 \end{itemize}
 \fi
 
-The scene used to benchmark performance changes is comprised of 180 skeletal meshes. Each of these skeletal meshes contains a sixty-nine bone armature and a mesh with 4,951 vertexes. All 180 skeletal meshes perform the same animation, which is a silly dance animation. A screenshot of the scene being run is shown in figure~\ref{fig:anim_bench}.
+The scene used to benchmark performance changes is comprised of 180 skeletal meshes.
+Each of these skeletal meshes contains a sixty-nine bone armature and a mesh with 4,951 vertexes.
+All 180 skeletal meshes perform the same animation, which is a silly dance animation.
+A screenshot of the scene being run is shown in figure~\ref{fig:anim_bench}.
 
 \fig{imgs/anim_heavy}{0.5}{Screenshot of the benchmark scene}{anim_bench}
 
@@ -54,6 +57,7 @@ blenderplayer -w 1600 900 -g show_framerate = 1 -g show_profile = 1 anim_stress.
 \end{itemize}
 \fi
 
-Helgrind (part of the Valgrind suite\cite{valgrind}) can be used to check for threading errors. Since OpenMP is being used for parts of this work, as noted in section 7.5 (``Hints and Tips for Effective Use of Helgrind'')\cite{hgmanual}, GCC needs to be built with the \texttt{--disable-linux-futex} option for accurate output when using OpenMP.
+Helgrind (part of the Valgrind suite\cite{valgrind}) can be used to check for threading errors.
+Since OpenMP is being used for parts of this work, as noted in section 7.5 (``Hints and Tips for Effective Use of Helgrind'')\cite{hgmanual}, GCC needs to be built with the \texttt{--disable-linux-futex} option for accurate output when using OpenMP.
 
 \todo{Talk about Valgrind's memcheck tool}
