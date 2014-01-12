@@ -36,7 +36,9 @@ The benchmark scene will be run through the stand-alone Blenderplayer instead of
 blenderplayer -w 1600 900 -g show_framerate = 1 -g show_profile = 1 anim_stress.blend
 \end{verbatim}
 
-\todo{While the mentioned scene works well for benchmarking purposes, it's consistency does not work as well for verification testing since each skeletal mesh is playing the same action at the same time. Random starts and actions would provide a better scene for testing.}
+Another version of this scene, which is accessed by adding \texttt{- random} to the end of the above command line string, assigns a random action to each character.
+While this version is not as consistent as the original scene (making it poorer for benchmarking), it does help to visually verify that duplicates of the same character can play different actions.
+In other words, to show that the threaded code is not breaking when used with different actions.
 
 \subsection{Measuring Performance}
 \ifsummaries
