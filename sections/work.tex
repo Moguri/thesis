@@ -9,15 +9,16 @@
 \end{itemize}
 \fi
 
-\todo{The following section needs to be expanded on. It talks about juggling bPose references and then says a unique bArmature is required, which is confusing}
-
 The juggling of the bPose reference of bArmature described in section~\ref{sec:bge_overview} saves memory, but it can cause race conditions when attempting to perform the pose updates in parallel.
-In order to solve this, ArmatureObjects need a unique bArmature, which they do not share with other ArmatureObjects.
-This allows the pose updates to be independent.
+If multiple ArmatureObjects share a single reference to a bArmature, and then those ArmatureObjects attempt to modify their bArmature simultaneously, problems will occur.
+Therefore, in order to avoid the race conditions, it is better that each ArmatureObject not only has a unique copy of the bPose, but a unique copy of the bArmature as well.
+The copy does consume a little more memory, but it makes threading the animation code possible.
 
-Once the pose updates were made independent of other pose updates, OpenMP\cite{openmp} was used to parallelize the loop found in Scene::UpdateAnimations().
-OpenMP's parallel for construct provides various scheduling options.
-These scheduling options could be explored for better load balancing of the threads since some iterations of the loop that are not updating skeletal mesh animations will be completed much quicker.
+A simple OpenMP parallel for construct was used to parallelize the loop found in Scene::UpdateAnimations().
+This construct also provides various scheduling options, that could be explored for better load balancing of the threads since some iterations of the loop that are not updating skeletal mesh animations will be completed much quicker.
+
+A potential race condition found by Helgrind, involved the bAction data stored by the Action class.
+This bAction data does get modified during animation updates, so it was best that each Action object held its own copy of the bAction data to avoid potential race conditions.
 
 \todo{Explore scheduling options for load balancing mixed (skeletal mesh and object animations) scenes}
 
