@@ -33,7 +33,17 @@ This bAction data does get modified during animation updates, so it was best tha
 \end{itemize}
 \fi
 
-\todo{Fill out this section}
+The skinning step was not already in a nice loop like the pose update.
+In order to get a nicer loop that would be easier to parallelize, code was moved from SkinDeformer::Apply() to SkinDeformer::Update().
+The goal by doing this was to have a function that could be called by the Scene::UpdateAnimations() loop.
+SkinDeformer::Apply() requires a RAS\_IPolyMaterial pointer, which is part of the rasterizer code.
+However, SkinDeformer::Update() has no arguments, and none of the skinning code required the RAS\_IPolyMaterial pointer.
+
+Once the skinning code was moved, code was added to Scene::UpdateAnimations() to call SkinDeformer::Update().
+It does not matter if this update is called multiple times (e.g., once in Scene::UpdateAnimations() and again in the rasterizer) since it contains a guard to only do skinning if there has been a pose update since the last call to SkinDeformer::Update().
+Since a pose can only be updated at most once per frame, the skinning step should happen at most once per frame regardless of how many times SkinDeformer::Update() is called.
+
+From here the skinning was parallelized by adding the SkinDeformer::Update() call to the parallel loop from the pose updates.
 
 \subsection{Hardware Skinning}
 \ifsummaries
