@@ -1,4 +1,5 @@
 @startuml
+left to right direction
 title BGE Animation Classes
 hide circle
 
@@ -33,7 +34,9 @@ RAS_Deformer <|-- BL_MeshDeformer
 BL_MeshDeformer <|-- BL_SkinDeformer
 RAS_Deformer: Update()
 BL_MeshDeformer: Update()
-BL_SkinDeformer: Update
+BL_SkinDeformer: Update()
+BL_SkinDeformer: BlenderDeformVerts()
+BL_SkinDeformer: BGEDeformVerts()
 BL_SkinDeformer <.. BL_ArmatureObject
 
 @enduml
