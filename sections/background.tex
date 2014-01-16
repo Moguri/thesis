@@ -137,7 +137,7 @@ Originally the SkinDeformer would make calls into Blender code to handle the def
 Later a ``BGE Vertex Deformer'' (the original code was used to create the BlenderDeformVerts() function) was added to focus on speed over accuracy, and it decreases the frame time of an animation heavy scene by about 30\%.
 However, it lacks some features such as support for Blender's B-Bones, and it has less accurate normal calculations.
 
-When setting up a skeletal mesh in Blender, a mesh and skeletal are first both created.
+When setting up a skeletal mesh in Blender, a mesh and skeleton are first both created.
 Then, the mesh is ``parented'' to the skeleton.
 Thus, a mesh has at most one skeleton deforming it, but a skeleton can deform many meshes.
 However, in most cases this is simply a one-to-one relationship.
