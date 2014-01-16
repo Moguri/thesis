@@ -18,15 +18,18 @@
 \label{sec:bench_scene}
 \ifsummaries
 \begin{itemize}
- \item 180 Skeletal Meshes
+ \item 160 Skeletal Meshes
  \item Each skeleton has sixty-nine bones, and each mesh has 4,951 vertexes
  \item Directions for running the scene
 \end{itemize}
 \fi
 
-The scene used to benchmark performance changes is comprised of 180 skeletal meshes.
+The scene used to benchmark performance changes is comprised of 160 skeletal meshes.
 Each of these skeletal meshes contains a sixty-nine bone armature and a mesh with 4,951 vertexes.
-All 180 skeletal meshes perform the same animation, which is a silly dance animation.
+All 160 skeletal meshes perform the same animation, which is a silly dance animation.
+However they each have their own skeleton, and each skeleton's pose update is done independent of other skeletons.
+Therefore, this benchmark can still be representative of multiple different characters performing different actions.
+The scene also has no physics being calculated, which allows the characters to freely clip into one another.
 A screenshot of the scene being run is shown in figure~\ref{fig:anim_bench}.
 
 \fig{imgs/anim_heavy}{0.5}{Screenshot of the benchmark scene}{anim_bench}
