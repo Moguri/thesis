@@ -94,7 +94,7 @@ Some prefixes from Blender that one might see used in BGE code include:
 Blender contains two systems for storing and manipulating data, these are DNA and RNA. DNA is responsible for storing (and ultimately saving) Blender data, while RNA describes the DNA data and how it can be accessed.
 In other words, DNA values are modified via RNA.
 Blender's animation system uses this RNA for writing out new pose data.
-Unfortunately looking up RNA values and modifying them where never optimized for speed.
+Unfortunately looking up RNA values and modifying them were never optimized for speed.
 Therefore, these operations can be slow, and comprise a bulk of the pose updating time in Blender/BGE.
 \todo{Maybe generate a callgraph to show this is the case?}
 
