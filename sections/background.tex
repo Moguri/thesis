@@ -23,25 +23,26 @@
 \fi
 
 One popular method used to drive character animations is to use a set of bones (also known as joints) called a skeleton (or armature) to deform a mesh.
+Once a pose (a set of transforms for each bone) has been determined, an operation called skinning is used to deform the mesh to the pose.
 Each vertex has a set of weights, which sum to one, to determine the amount of influence each bone has on that vertex.
 To deform the mesh using the skeleton, iterate over every vertex and transform the vertex using a weighted sum of the transform matrices of the bones that influence the given vertex.
-In other words, a vertex's transform can be defined as:\[\sum_b{I_bT_b}\] where $b$ is a bone, $I_b$ is the influence of $b$ on the vertex and $T_b$ is the transform matrix of the bone.
+In other words, a vertex's transform can be defined as:\[T_v = \sum_b{I_bT_b}\]
+where $T_v$ is the four-by-four transform matrix of the vertex, $b$ is a bone, $I_b$ is the scalar influence of $b$ on the vertex and $T_b$ is the four-by-four transform matrix of the bone.
 These calculations must be done every time the pose of the skeleton is updated to create a new set of positions for a mesh's vertexes.
-When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU.
+When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU (software skinning).
 
 A technique referred to as hardware skinning avoids this extra copy by moving the skinning step from the CPU to the GPU.
 This also allows the skinning calculation to benefit from the impressive parallelization offered by modern graphics hardware.
 Another benefit is that the skeletal mesh can be treated as static geometry since all of the deformations are done on the GPU.
 This allows options such as display lists and VBOs to be used to increase rendering performance.
-Hardware skinning is usually implemented as a vertex shader, which is a piece of code executed on the GPU for every vertex in a mesh.
-The OpenGL Shading Language (GLSL) will be the shading language used in this work.
+Hardware skinning is usually implemented as a vertex shader.
 An example GLSL vertex shader from version 9.52 of NVIDIA's graphics SDK\cite{nvidiasdk} is shown in listing~\ref{lst:nv_skinning}.
 
 \includeglsl{nv_skinning}{Example vertex shader for hardware skinning from NVIDIA's graphics SDK}
 
 Attributes are per-vertex values while uniforms are global values.
 Typically uniforms will be changed per-material or per-mesh.
-The NVIDIA example has a maximum of four bones influencing each vertex, which is why weights and indexes are stored in vec4 data types.
+The NVIDIA example has a maximum of four bones influencing each vertex, which allows weights and indexes to be stored as a vec4 (four floats) data type.
 It also imposes a limit of thirty bones for the whole skeleton.
 Currently the BGE imposes no such limits, therefore other methods of transferring the data from the CPU to GPU that do not impose a preset limit may have to be explored.
 
