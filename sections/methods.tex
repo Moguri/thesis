@@ -63,6 +63,13 @@ In other words, to show that the threaded code is not breaking when used with di
 \fi
 
 Helgrind (part of the Valgrind suite\cite{valgrind}) can be used to check for threading errors.
-Since OpenMP is being used for parts of this work, as noted in section 7.5 (``Hints and Tips for Effective Use of Helgrind'')\cite{hgmanual}, GCC needs to be built with the \texttt{--disable-linux-futex} option for accurate output when using OpenMP.
+According to the Helgrind manual\cite{hgmanual}, Helgrind can detect the following three classes of errors:
+\begin{enumerate}
+ \item Misuses of the POSIX pthreads API
+ \item Potential deadlocks arising from lock ordering problems
+ \item Data races -- accessing memory without adequate locking or synchronization
+\end{enumerate}
+
+Since OpenMP is being used for parts of this work, as noted in section 7.5 ``Hints and Tips for Effective Use of Helgrind'' of the Helgrind manual\cite{hgmanual}, GCC needs to be built with the \texttt{--disable-linux-futex} option for accurate output when using OpenMP.
 
 \todo{Talk about Valgrind's memcheck tool}
