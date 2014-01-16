@@ -38,6 +38,10 @@ This also allows the skinning calculation to benefit from the impressive paralle
 Another benefit is that the skeletal mesh can be treated as static geometry since all of the deformations are done on the GPU.
 This allows options such as display lists and VBOs to be used to increase rendering performance.
 Hardware skinning is usually implemented as a vertex shader.
+The differences between software and hardware skinning are shown in figure~\ref{fig:skinned_update}.
+
+\fig{uml/skinned_update}{0.5}{UML Activity diagram for skinned animations}{skinned_update}
+
 An example GLSL vertex shader from version 9.52 of NVIDIA's graphics SDK\cite{nvidiasdk} is shown in listing~\ref{lst:nv_skinning}.
 
 \includeglsl{nv_skinning}{Example vertex shader for hardware skinning from NVIDIA's graphics SDK}
