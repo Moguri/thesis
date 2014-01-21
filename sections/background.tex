@@ -146,6 +146,11 @@ Then, the mesh is ``parented'' to the skeleton.
 Thus, a mesh has at most one skeleton deforming it, but a skeleton can deform many meshes.
 However, in most cases this is simply a one-to-one relationship.
 
+Other types of animations other than skeletal mesh animations can be performed.
+These include changing an object's color, changing an object's transform (position, rotation and/or scale), and other minor animations.
+Since these animations are simple (usually updating a single vector or matrix), they are usually much faster than animating a skeletal mesh.
+As such, this work will only focus on improving the performance of skeletal mesh animations, and ignore the performance of other types of animations.
+
 \subsubsection{Version Control}
 
 Blender recently switched from SVN to Git\cite{git} as its version control system\cite{blendergit}.
