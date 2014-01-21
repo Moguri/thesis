@@ -103,14 +103,23 @@ Therefore, these operations can be slow, and comprise a bulk of the pose updatin
 \todo{Maybe generate a callgraph to show this is the case?}
 
 
-\subsubsection{BGE Animation Code}
-\label{sec:bge_overview}
+\subsubsection{BGE Overview}
+\label{sec:bge_general_overview}
 
 \fig{uml/bge_activity}{0.5}{UML activity diagram for the BGE's main loop}{bge_main_loop}
 
 Figure~\ref{fig:bge_main_loop} shows a simplified version of the BGE's main loop.
 As can be seen, every frame the BGE has roughly four main tasks: update logic, update physics, update animations, and render.
-The focus of this thesis is to improve the performance of the animation updates, specifically when dealing with skeletal meshes.
+When updating logic, the engine evaluates and executes any logic bricks or Python scripts that a user may have setup.
+The physics engine (the BGE uses Bullet) is then given the chance to evaluate the physics scene and step its simulations.
+Animations are updated next, which is further explained in section~\ref{sec:bge_anim_overview}.
+Finally, the scene must be rendered.
+This involves determining what needs to be rendered (objects that will not be rendered this frame are ``culled''), and issuing the appropriate commands to have the GPU render the scene.
+Excluding the actual rasterization of the scene, everything is performed on the CPU (including culling and mesh deformations), and in a single thread.
+
+\subsubsection{BGE Animation Code}
+\label{sec:bge_anim_overview}
+
 The code for updating animations can be seen in listing~\ref{lst:anim_code}.
 
 \includecpp{anim_code}{BGE animation code}

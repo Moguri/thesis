@@ -9,7 +9,7 @@
 \end{itemize}
 \fi
 
-The juggling of the bPose reference of bArmature described in section~\ref{sec:bge_overview} saves memory, but it can cause race conditions when attempting to perform the pose updates in parallel.
+The juggling of the bPose reference of bArmature described in section~\ref{sec:bge_anim_overview} saves memory, but it can cause race conditions when attempting to perform the pose updates in parallel.
 If multiple ArmatureObjects share a single reference to a bArmature, and then those ArmatureObjects attempt to modify their bArmature simultaneously, problems will occur.
 Therefore, in order to avoid the race conditions, it is better that each ArmatureObject not only has a unique copy of the bPose, but a unique copy of the bArmature as well.
 The copy does consume a little more memory, but it makes threading the animation code possible.
