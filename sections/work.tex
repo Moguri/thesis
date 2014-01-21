@@ -96,7 +96,7 @@ If hardware skinning cannot be used, the skinning falls back to software skinnin
 \end{itemize}
 \fi
 
-The original animation code shown in listing~\ref{lst:anim_code} does not take into account if the animated object will actually be visible.
+The original animation code shown in listing~\ref{lst:anim_code} does not take into account whether the animated object will actually be visible.
 This means that animation updates can be performed that have no visual impact, but still consume resources.
 Regular object animations are much quicker in comparison to skeletal mesh animations, which means culling them is not as important.
 This simplifies the culling calculation since we can make some assumptions about skeletal meshes.
