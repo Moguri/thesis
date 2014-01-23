@@ -8,7 +8,14 @@
 
 Blender is a free and open-source 3D modeling and animation program\cite{blender}.
 One of its many features is a built-in game engine called The Blender Game Engine (BGE).
-Character animations in the BGE are considered slow, and this work attempts to increase their performance.
+Character animations in the BGE are considered slow by the BGE community.
+For comparison, the benchmark scene described in section~\ref{sec:bench_scene} runs at approximately 187ms per frame on the benchmark machine described in section~\ref{sec:bench_platform}.
+As a quick test, a scene similar to the benchmark scene was created and ran using and open-source graphics engine called OGRE\cite{ogre}.
+In OGRE, the scene ran at approximately 37ms per frame.
+Not only is this approximately five times faster, but the OGRE test could probably be further optimized by someone more knowledgeable with OGRE.
+The OGRE example uses just the basics needed to get the scene to run.
+For example, different scenegraphs, instancing or hardware skinning could be explored and used.
+\todo{Add code for the OGRE example (probably as an appendix).}
 
+This work attempts to improve the performance of these skeletal mesh animations in the BGE.
 Several optimizations are used in this work, which can be grouped into three main categories: parallelizing code, moving code to the GPU, and other minor optimizations.
-\todo{Probably should add some more here}
