@@ -57,7 +57,22 @@ In other words, to show that the threaded code is not breaking when used with di
 \end{itemize}
 \fi
 
-\todo{Fill out this section}
+\subsubsection{BGE Profiler}
+\fig{imgs/profiler.png}{0.75}{Screenshot of the BGE's in-game profiler}{bge_profiler}
+
+Figure~\ref{fig:bge_profiler} shows a screenshot of the BGE's in-game profiler.
+The frametime is split into the following categories: physics, logic, animations, network, scenegraph, rasterizer, services, overhead, outside, and GPU latency.
+Of importance to this work are: animations, rasterizer, and GPU latency.
+In general, the animation category logs time spent on pose and -- after the work in section~\ref{sec:parallel_software_skinning} -- software skinning updates.
+The rasterizer category logs time spent on getting data ready to send to the GPU.
+This includes actions such as culling, sorting meshes for alpha, and sending buffer data to the GPU.
+GPU latency is the time spent on a SwapBuffers calls.
+This gives an idea of how long the CPU has to spend waiting for the GPU to finish rendering.
+\cite{bge_profile_stats} gives a more detailed overview of the various categories.
+
+\subsubsection{gperftools}
+
+\subsubsection{NVIDIA System Management Interface}
 
 \subsection{Verification}
 \ifsummaries
