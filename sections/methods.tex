@@ -70,9 +70,15 @@ GPU latency is the time spent on a SwapBuffers calls.
 This gives an idea of how long the CPU has to spend waiting for the GPU to finish rendering.
 \cite{bge_profile_stats} gives a more detailed overview of the various categories.
 
+For this work, the profiler is mostly used to get frametime and fps numbers.
+
 \subsubsection{gperftools}
+gperftools\cite{gperftools} is used for more detailed profiling that is offered by the BGE's profiler.
+The data from gperftools can also be used to generate a visual callgraph.
 
 \subsubsection{NVIDIA System Management Interface}
+The NVIDIA System Management Interface is a command line tool (nvidia-smi) that is used in this work to get information on GPU usage.
+\todo{Add a citation for nvidia-smi}
 
 \subsection{Verification}
 \ifsummaries
