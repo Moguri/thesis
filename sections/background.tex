@@ -28,7 +28,12 @@ One popular method used to drive character animations is to use a set of bones (
 Once a pose (a set of transforms for each bone) has been determined, an operation called skinning is used to deform the mesh to the pose.
 Each vertex has a set of weights, which sum to one, to determine the amount of influence each bone has on that vertex.
 To deform the mesh using the skeleton, iterate over every vertex and transform the vertex using a weighted sum of the transform matrices of the bones that influence the given vertex.
-In other words, a vertex's transform can be defined as:\[T_v = \sum_b{I_bT_b}\]
+In other words, a vertex's transform can be defined as:
+\begin{equation}
+ \label{eq:skinning}
+ T_v = \sum_b{I_bT_b}
+\end{equation}
+
 where $T_v$ is the four-by-four transform matrix of the vertex, $b$ is a bone, $I_b$ is the scalar influence of $b$ on the vertex and $T_b$ is the four-by-four transform matrix of the bone.
 These calculations must be done every time the pose of the skeleton is updated to create a new set of positions for a mesh's vertexes.
 When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU (software skinning).
