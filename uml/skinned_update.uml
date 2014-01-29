@@ -4,10 +4,10 @@ start
 :Update pose;
 
 if (hardware skinning) then (yes)
-	:send pose data to the gpu;
+	:upload pose data to the gpu;
 	:calculate new vertex positions on the GPU via GLSL vertex shader;
 else (no)
-	:copy mesh data;
+	:create a copy of the mesh data on the CPU;
 	:calculate new vertex positions on the CPU;
 	:upload new mesh data to the GPU;
 endif
