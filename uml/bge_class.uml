@@ -12,8 +12,9 @@ KX_GameObject <|-- BL_DeformableGameObject
 KX_GameObject *-- BL_ActionManager
 KX_GameObject: BL_ActionManager* action_manager
 KX_GameObject: UpdateActionManager(double curtime)
+KX_GameObject o-- RAS_MeshObject
 
-BL_ArmatureObject o-- bArmature
+BL_ArmatureObject "*" o-- bArmature
 bArmature *-- bPose
 BL_ArmatureObject *-- bPose
 BL_ArmatureObject <.. BL_Action
@@ -32,6 +33,7 @@ BL_Action: Update(double curtime)
 RAS_Deformer <|-- BL_MeshDeformer
 BL_MeshDeformer <|-- BL_SkinDeformer
 RAS_Deformer: Update()
+RAS_Deformer o-- RAS_MeshObject
 BL_MeshDeformer: Update()
 BL_SkinDeformer: Update()
 BL_SkinDeformer: BlenderDeformVerts()
