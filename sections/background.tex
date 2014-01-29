@@ -141,11 +141,11 @@ A handful of Deformers exist in the BGE, but the SkinDeformer is the only one of
 The SkinDeformer will deform the mesh based off of the current pose of an ArmatureObject (usually the mesh's parent object).
 A Deformer is updated during the render stage while ArmatureObjects are updated during the animation stage.
 
-The ArmatureObject contains Blender data in the form of bArmature and bPose references.
+The ArmatureObject contains Blender data in the form of bArmature and bPose pointers.
 Every ArmatureObject that uses the same skeleton will also point to the same bArmature.
 All ArmatureObjects make copy of their bArmature's bPose.
-In order to actually update the pose, the bArmature's bPose reference is saved and replaced with the ArmatureObject's bPose, and then some Blender functions are called to animate the bArmature.
-The bArmature's original reference is then restored.
+In order to actually update the pose, the bArmature's bPose pointer is saved and replaced with the ArmatureObject's bPose, and then some Blender functions are called to animate the bArmature.
+The bArmature's original pointer is then restored.
 The code that performs this update (as well as some blending) is shown in listing~\ref{lst:anim_pose_update}.
 
 \includecpp{anim_pose_update}{Pose update performed as part of BL\_Action::Update()}
