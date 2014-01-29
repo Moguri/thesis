@@ -53,7 +53,7 @@ An example GLSL vertex shader from version 9.52 of NVIDIA's graphics SDK\cite{nv
 
 Attributes are per-vertex values while uniforms are global values.
 Typically uniforms will be changed per-material or per-mesh.
-The NVIDIA example has a maximum of four bones influencing each vertex, which allows weights and indexes to be stored as a vec4 (four floats) data type.
+The NVIDIA example has a maximum of four bones influencing each vertex, which allows weights and indexes (into the boneMatrices array) to be stored as a vec4 (four floats) data type.
 It also imposes a limit of thirty bones for the whole skeleton.
 Currently the BGE imposes no such limits, therefore other methods of transferring the data from the CPU to GPU that do not impose a preset limit may have to be explored.
 
