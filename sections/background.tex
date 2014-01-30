@@ -26,7 +26,7 @@
 
 One popular method used to drive character animations is to use a set of bones (also known as joints) called a skeleton (or armature) to deform a mesh.
 Once a pose (a set of transforms for each bone) has been determined, an operation called skinning is used to deform the mesh to the pose.
-Each vertex has a set of weights, which sum to one, to determine the amount of influence each bone has on that vertex.
+Each vertex in the mesh has a set of weights, which sum to one, to determine the amount of influence each bone has on that vertex.
 To deform the mesh using the skeleton, iterate over every vertex and transform the vertex using a weighted sum of the four-by-four transform (rotation, translation and scale) matrices of the bones that influence the given vertex.
 In other words, a vertex's transform can be defined as:
 \begin{equation}
