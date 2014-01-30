@@ -41,7 +41,7 @@ When rendering the mesh this also requires the vertex data to be re-sent to the 
 A technique referred to as hardware skinning avoids this extra copy by moving the skinning step from the CPU to the GPU.
 This also allows the skinning calculation to benefit from the impressive parallelization offered by modern graphics hardware.
 Another benefit is that the skeletal mesh can be treated as static geometry since all of the deformations are done on the GPU.
-This allows options such as display lists and VBOs to be used to increase rendering performance.
+This allows options such as display lists and vertex buffer objects\cite{ARB_texture_buffer_object} to be used to increase rendering performance.
 Hardware skinning is usually implemented as a vertex shader.
 The differences between software and hardware skinning are shown in figure~\ref{fig:skinned_update}.
 
