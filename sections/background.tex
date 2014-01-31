@@ -26,39 +26,74 @@
 
 One popular method used to drive character animations is to use a set of bones (also known as joints) called a skeleton (or armature) to deform a mesh.
 Once a pose (a set of transforms for each bone) has been determined, an operation called skinning is used to deform the mesh to the pose.
+Transformations are usually represented as a four-by-four matrix, which encodes rotation, translation and scale.
+The pose transformations are relative to an initial ``rest'' pose.
 Each vertex in the mesh has a set of weights, which sum to one, to determine the amount of influence each bone has on that vertex.
-To deform the mesh using the skeleton, iterate over every vertex and transform the vertex using a weighted sum of the four-by-four transform (rotation, translation and scale) matrices of the bones that influence the given vertex.
-In other words, a vertex's transform can be defined as:
+% To deform the mesh using the skeleton, iterate over every vertex and transform the vertex using a weighted sum of the four-by-four transform (rotation, translation and scale) matrices of the bones that influence the given vertex.
+% In other words, a vertex's transform can be defined as:
+To determine each vertex's new skinned position and normal, equations~\ref{eq:skinning_p}~and~\ref{eq:skinning_n} can be used.
+
 \begin{equation}
- \label{eq:skinning}
- T_v = \sum_b{I_bT_b}
+ \label{eq:skinning_p}
+  P^\prime = P + \sum_b{\left(T_bPW_b\right)}
 \end{equation}
 
-where $T_v$ is the four-by-four transform matrix of the vertex, $b$ is a bone, $I_b$ is the scalar influence (i.e., the weights) of $b$ on the vertex and $T_b$ is the four-by-four transform matrix of the bone.
-These calculations must be done every time the pose of the skeleton is updated to create a new set of positions for a mesh's vertexes.
+\begin{equation}
+ \label{eq:skinning_n}
+ N^\prime = N + \sum_b{\left(T_{rb}NW_b\right)}
+%  T_v = \sum_b{I_bT_b}
+\end{equation}
+
+For the position equation (equation~\ref{eq:skinning_p}) $P$ is the initial, rest position of the vertex, $b$ is a bone, $W_b$ is the scalar influence (i.e., the weight) of $b$ on the vertex and $T_b$ is the four-by-four transform matrix of the bone.
+The normal equation (equation~\ref{eq:skinning_n}) is similar except we use the normal's resting rotation ($N$) and the three-by-three rotation part of the bone transformation matrix as $T_{rb}$.
+These calculations must be done every time the pose of the skeleton is updated to create a new set of positions and normals for a mesh's vertexes.
 When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU (software skinning).
 
 A technique referred to as hardware skinning avoids this extra copy by moving the skinning step from the CPU to the GPU.
 This also allows the skinning calculation to benefit from the impressive parallelization offered by modern graphics hardware.
 Another benefit is that the skeletal mesh can be treated as static geometry since all of the deformations are done on the GPU.
 This allows options such as display lists and vertex buffer objects\cite{ARB_texture_buffer_object} to be used to increase rendering performance.
-Hardware skinning is usually implemented as a vertex shader.
-The differences between software and hardware skinning are shown in figure~\ref{fig:skinned_update}.
+
+The differences in program flow between software and hardware skinning are shown in figure~\ref{fig:skinned_update}.
 
 \fig{uml/skinned_update}{0.5}{UML Activity diagram for skinned animations}{skinned_update}
 
+As can be seen in figure~\ref{fig:skinned_update}, instead of sending new vertex data every frame, the pose data must be sent every frame.
+This means, as far as memory bandwidth, $number\_of\_verts*sizeof(vertex)$ is being traded for $number\_of\_bones*sizeof(bone_transform)$.
+The size of a vertex in the BGE can range from between six floats (position and normal) to thirty-one floats (position, normal, color, and various texture coordinates).
+Using just position, normals and UV texture coordinates results in only eight floats and is feasible for a simple character.
+Bone transformations, as mentioned earlier, are a four-by-four matrix, which is sixteen floats.
+As for the number of vertexes and bones, documentation for Unity3D (a game engine) notes that skeletons will usually have between sixteen and sixty bones, and meshes will usually have between 1,500 to 4,000 vertexes, but possibly upwards of 5,000 to 7,000 vertexes\cite{unity_opt_char}.
+Using thirty bones as suggested in \cite{unity_opt_char} and an average of 2,750 vertexes, the total memory, $M$, needed for vertex data is (assuming four bytes per float):
+\begin{align*}
+ M &= number\_of\_verts*sizeof(vertex)\\
+ M &= 2,750 * 8 * sizeof(float)\\
+ M &= 88,000\ bytes
+\end{align*}
+
+and for pose data is:
+
+\begin{align*}
+ M &= number\_of\_bones*sizeof(bone\_transform)\\
+ M &= 30 * 16 * sizeof(float)\\
+ M &= 1,920\ bytes
+\end{align*}
+In other words, hardware skinning will typically not use more memory bandwidth than software skinning.
+\todo{Possibly mention dual quaternion skinning}
+
+Hardware skinning is usually implemented as a vertex shader.
 An example GLSL vertex shader from version 9.52 of NVIDIA's graphics SDK\cite{nvidiasdk} is shown in listing~\ref{lst:nv_skinning}.
 
 \includeglsl{nv_skinning}{Example vertex shader for hardware skinning from NVIDIA's graphics SDK}
 
 Attributes are per-vertex values while uniforms are global values.
 Typically uniforms will be changed per-material or per-mesh.
-The NVIDIA example has a maximum of four bones influencing each vertex, which allows weights and indexes (into the boneMatrices array) to be stored as a vec4 (four floats) data type.
+The NVIDIA example has a maximum of four bones influencing each vertex, which allows weights and indexes (into the boneMatrices array) to be stored as vec4 (four floats) data types.
 It also imposes a limit of thirty bones for the whole skeleton.
-Currently the BGE imposes no such limits, therefore other methods of transferring the data from the CPU to GPU that do not impose a preset limit may have to be explored.
-
-In the NVIDIA shader, the mat44 variable stores a bone's four-by-four transform matrix, which is multiplied against the current vertex's vec4 position value.
-The mat33 variable is a three-by-three orientation matrix constructed from the bone's transform matrix, and it is multiplied against the current vertex's vec3 normal value.
+%Currently the BGE imposes no such limits, therefore other methods of transferring the data from the CPU to GPU that do not impose a preset limit may have to be explored.
+In the NVIDIA shader, the mat44 variable stores a bone's four-by-four transform matrix, which is multiplied against the current vertex's vec4 position value (the part inside the summation of equation~\ref{eq:skinning_p}).
+The mat33 variable is a three-by-three orientation matrix constructed from the bone's transform matrix, and it is multiplied against the current vertex's vec3 normal value (the part inside the summation of equation~\ref{eq:skinning_n}).
+A for loop is used for the summation, and the resulting vectors are added back to the initial position and normal vectors.
 
 \subsection{Blender and the BGE}
 \ifsummaries
