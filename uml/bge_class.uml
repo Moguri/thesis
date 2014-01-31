@@ -35,6 +35,7 @@ BL_MeshDeformer <|-- BL_SkinDeformer
 RAS_Deformer: Update()
 RAS_Deformer o-- RAS_MeshObject
 BL_MeshDeformer: Update()
+BL_SkinDeformer: Apply()
 BL_SkinDeformer: Update()
 BL_SkinDeformer: BlenderDeformVerts()
 BL_SkinDeformer: BGEDeformVerts()

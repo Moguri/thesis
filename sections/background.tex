@@ -189,6 +189,8 @@ The SkinDeformer contains two functions for handling the mesh deformations that 
 Originally the SkinDeformer would make calls into Blender code to handle the deformation.
 Later a ``BGE Vertex Deformer'' (the original code was used to create the BlenderDeformVerts() function) was added to focus on speed over accuracy, and it decreases the frame time of an animation heavy scene by about 30\%.
 However, it lacks some features such as support for Blender's B-Bones, and it has less accurate normal calculations.
+These vertex deformers are called as part of SkinDeformer::Update(), which, in turn, is called as part of SkinDeformer::Apply().
+This makes SkinDeformer::Apply() the function to call to kickoff skinning in the BGE.
 
 When setting up a skeletal mesh in Blender, a mesh and skeleton are first both created.
 Then, the mesh is ``parented'' to the skeleton.

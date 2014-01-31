@@ -34,17 +34,19 @@ This bAction data does get modified during animation updates, so it was best tha
 \end{itemize}
 \fi
 
-The skinning step was not already in a nice loop like the pose update.
-In order to get a nicer loop that would be easier to parallelize, code was moved from SkinDeformer::Apply() to SkinDeformer::Update().
-The goal by doing this was to have a function that could be called by the Scene::UpdateAnimations() loop.
-SkinDeformer::Apply() requires a RAS\_IPolyMaterial pointer, which is part of the rasterizer code.
-However, SkinDeformer::Update() has no arguments, and none of the skinning code required the RAS\_IPolyMaterial pointer.
+The skinning step was not already in an easy-to-parallelize loop like the pose update.
+Another problem with the software skinning is that it is counted under the ``Rasterizer'' category in the profiler discussed in section~\ref{sec:bge_profiler}.
+It would be ideal to perform the skinning step in the same loop as the pose updates (Scene::UpdateAnimations()), as this solves both problems (the loop is already running in parallel, and is already being recorded as ``Animation'' time).
+As discussed in section~\ref{sec:bge_anim_overview}, SkinDeformer::Apply() is essentially the entry point for the software skinning.
 
-Once the skinning code was moved, code was added to Scene::UpdateAnimations() to call SkinDeformer::Update().
+Unfortunately, SkinDeformer::Apply() requires a RAS\_IPolyMaterial pointer, which is part of the rasterizer code and not something that Scene::UpdateAnimations() has access to.
+However, SkinDeformer::Update() has no arguments, and none of the skinning code requires the RAS\_IPolyMaterial pointer.
+Thus, skinning code could be moved from SkiinDeformer::Apply() to SkinDeformer::Update() and SkinDeformer::Update() could be called in the Scene::UpdateAnimation() loop.
 It does not matter if this update is called multiple times (e.g., once in Scene::UpdateAnimations() and again in the rasterizer) since it contains a guard to only do skinning if there has been a pose update since the last call to SkinDeformer::Update().
 Since a pose can only be updated at most once per frame, the skinning step should happen at most once per frame regardless of how many times SkinDeformer::Update() is called.
 
-From here the skinning was parallelized by adding the SkinDeformer::Update() call to the parallel loop from the pose updates.
+It could be argued that the skinning code could have just be moved from SkinDeformer::Apply() to Scene::UpdateAnimations(), but this breaks the encapsulation of SkinDeformer, which is best avoided.
+The Scene does not need to know of the details of the mesh deformation caused by skinning, just that it needs to be performed.
 
 \subsection{Hardware Skinning}
 \ifsummaries
