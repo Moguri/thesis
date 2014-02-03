@@ -1,4 +1,32 @@
 \section{Work}
+
+\subsection{Animation Culling}
+\ifsummaries
+\begin{itemize}
+ \item Don't update animations if the mesh is not visible
+ \item Do not cull if the armature has non-mesh children (these are always ``culled'' since they are not drawn)
+ \item Culling calculation is already done
+ \item Performance gains are variable
+\end{itemize}
+\fi
+
+The original animation code shown in listing~\ref{lst:anim_code} does not take into account whether the animated object will actually be visible.
+This means that animation updates can be performed that have no visual impact, but still consume resources.
+Regular object animations are much quicker in comparison to skeletal mesh animations, which means culling them is not as important.
+This simplifies the culling calculation since we can make some assumptions about skeletal meshes.
+A skeletal mesh should have an armature and zero or more children meshes.
+If the armature has any children meshes and all of these child meshes were culled, then we do not need to bother with updating the pose or the mesh since they will not be visible.
+An example of what this code (without any of the parallel improvements) looks like is provided in listing~\ref{lst:anim_code_culling}.
+
+\includecpp{anim_code_culling}{BGE animation code with culling}
+
+This adds very little to the overall cost of the animation code since the mesh culling is already being done.
+However, if some pose and mesh updates can be avoided we can save a fair amount of time.
+The exact savings is difficult to calculate since it is view dependent.
+\todo{I should be able to come up with some metric for this. Possibly comparing an empty scene versus a character heavy scene with none of the characters in the view. This would at least show the cost of performing the culling step.}
+
+This optimization has already been committed to Blender's master branch and was included as part of the 2.69 release.
+
 \subsection{Multithreading}
 \subsubsection{Parallel Pose Updates}
 \ifsummaries
@@ -99,35 +127,7 @@ If hardware skinning cannot be used (e.g., if the skeleton has too many bones), 
 
 \todo{Double-check shadows and discuss shadow limitations}
 
-\subsection{Other Optimizations}
-\subsubsection{Animation Culling}
-\ifsummaries
-\begin{itemize}
- \item Don't update animations if the mesh is not visible
- \item Do not cull if the armature has non-mesh children (these are always ``culled'' since they are not drawn)
- \item Culling calculation is already done
- \item Performance gains are variable
-\end{itemize}
-\fi
-
-The original animation code shown in listing~\ref{lst:anim_code} does not take into account whether the animated object will actually be visible.
-This means that animation updates can be performed that have no visual impact, but still consume resources.
-Regular object animations are much quicker in comparison to skeletal mesh animations, which means culling them is not as important.
-This simplifies the culling calculation since we can make some assumptions about skeletal meshes.
-A skeletal mesh should have an armature and zero or more children meshes.
-If the armature has any children meshes and all of these child meshes were culled, then we do not need to bother with updating the pose or the mesh since they will not be visible.
-An example of what this code (without any of the parallel improvements) looks like is provided in listing~\ref{lst:anim_code_culling}.
-
-\includecpp{anim_code_culling}{BGE animation code with culling}
-
-This adds very little to the overall cost of the animation code since the mesh culling is already being done.
-However, if some pose and mesh updates can be avoided we can save a fair amount of time.
-The exact savings is difficult to calculate since it is view dependent.
-\todo{I should be able to come up with some metric for this. Possibly comparing an empty scene versus a character heavy scene with none of the characters in the view. This would at least show the cost of performing the culling step.}
-
-This optimization has already been committed to Blender's master branch and was included as part of the 2.69 release.
-
-\subsubsection{Bundled RNA Lookups}
+\subsection{Bundled RNA Lookups}
 \ifsummaries
 \begin{itemize}
  \item Animation in Blender modifies RNA values
