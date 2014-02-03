@@ -76,7 +76,7 @@ To work nicely with the rest of Blender's vertex shader, the bone matrix data of
 If arbitrary limit is placed on the done matrix data to only use half of the available components, then plenty of room is left for other potential uniforms in the vertex shader.
 Modern (shader model 4+) cards typically have 4096 components, which would give 2048 components for bone matrices, which allows for 128 matrices (a four-by-four matrix is sixteen components).
 Older cards tend to have 1024 components or less, giving a maximum of only 64 bone matrices on these graphics cards.
-Texture buffer objects (TBOs) could be used to work around component limits\cite{ARB_texture_buffer_object}, but they are not supported on these older cards, and 128 matrices is an okay limit on bones for the newer cards that support TBOs.
+Texture buffer objects (TBOs) could be used to work around component limits\cite{ARB_texture_buffer_object}, but they are not supported on these older cards, and 128 matrices is a reasonable limit on bones for the newer cards that support TBOs.
 
 \subsubsection{Other Limitations}
 
