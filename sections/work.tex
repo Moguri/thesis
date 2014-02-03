@@ -45,12 +45,19 @@ The copy does consume a little more memory, but it makes threading the animation
 A simple OpenMP parallel for construct was used to parallelize the loop found in Scene::UpdateAnimations().
 This construct also provides various scheduling options, that could be explored for better load balancing of the threads since some iterations of the loop that are not updating skeletal mesh animations will be completed much quicker.
 
+\todo{Does this part really need to be mentioned?}
 A potential race condition found by Helgrind involved the bAction data stored by the Action class.
 This bAction data does get modified during animation updates, so it was best that each Action object held its own copy of the bAction data to avoid potential race conditions.
 
-\todo{Explore scheduling options for load balancing mixed (skeletal mesh and object animations) scenes}
+Later, BLI\_task (see section~\ref{sec:bli_task}) was added to Blender.
+This opened up an alternative to OpenMP that was as compiler dependent.
+Furthermore, BLI\_task could be used for other parts of the BGE.
+Therefore, the code was switched from OpenMP to BLI\_task, which can be seen in listing~\ref{lst:anim_code_mt}.
+There was no discernible difference in performance between BLI\_task and OpenMP on the test system.
+\todo{Talk about MSVC 2010+ OpenMP performance issues? (https://connect.microsoft.com/VisualStudio/feedback/details/640588)}
 
-\todo{Provide some code examples?}
+\includecpp{anim_code_mt}{Multithreaded animation update code}
+
 
 \subsubsection{Parallel Software Skinning}
 \label{sec:parallel_software_skinning}
