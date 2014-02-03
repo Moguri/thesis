@@ -50,7 +50,7 @@ A potential race condition found by Helgrind involved the bAction data stored by
 This bAction data does get modified during animation updates, so it was best that each Action object held its own copy of the bAction data to avoid potential race conditions.
 
 Later, BLI\_task (see section~\ref{sec:bli_task}) was added to Blender.
-This opened up an alternative to OpenMP that was as compiler dependent.
+This opened up an alternative to OpenMP that was not as compiler dependent.
 Furthermore, BLI\_task could be used for other parts of the BGE.
 Therefore, the code was switched from OpenMP to BLI\_task, which can be seen in listing~\ref{lst:anim_code_mt}.
 There was no discernible difference in performance between BLI\_task and OpenMP on the test system.
