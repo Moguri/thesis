@@ -63,8 +63,19 @@ The Scene does not need to know of the details of the mesh deformation caused by
 \label{sec:hardware_skinning}
 
 To implement hardware skinning, a new vertex deformer type was added to the SkinDeformer, and each vertex deformer was made responsible for its own data.
-Previously, the Blender and BGE vertex deformers handle vertex data in similar ways, but hardware skinning does not need to copy data, and instead it sends that data to the GPU.
+Previously, the Blender and BGE vertex deformers handled vertex data in similar ways, but hardware skinning does not need to copy data on the CPU before sending that data to the GPU.
 Currently the bone data is sent to the GPU as a uniform array of four-by-four transform matrices.
+New member functions were added to SkinDeformer to send the necessary uniform and attribute data to the graphics card.
+This allows the SkinDeformer to handle preparing the data, but allows the rasterizer to control when that data is sent to the GPU (i.e., when the OpenGL state is properly setup).
+
+The modifications to Blender's vertex shader were based on NVIDIA code shown in listing~\ref{lst:nv_skinning}.
+The modified vertex shader fragment can be found in listing~\ref{lst:gpu_shader_vertex}.
+
+\includeglsl{gpu_shader_vertex}{Blender's vertex shader modified for hardware skinning}
+
+The \texttt{usehwskin} uniform is always sent as zero.
+Any code wanting to make use of hardware skinning can later set it to one, which happens in SkinDeformer.
+Along with the \texttt{usehwskin} uniform, the SkinDeformer must handle the \texttt{bonematrices} uniform and the \texttt{weight}, \texttt{index} and \texttt{numbones} vertex attributes.
 
 \todo{Discuss bandwidth issues with transform matrices versus dual-quaternions}
 
@@ -82,8 +93,8 @@ Texture buffer objects (TBOs) could be used to work around component limits\cite
 
 When using hardware skinning, each vertex can only have four bones influencing it.
 This limitation should work well enough in most cases.
-If a vertex has more than four bones influencing it, the four most influential bones are selected and their corresponding weights re-normalized.
-Hardware skinning also requires a specific vertex shader, and as such only works with the BGE's GLSL shader mode, and currently does not support custom shaders.
+If a vertex has more than four bones influencing it, the four most influential bones are selected and their corresponding weights re-normalized (this is done in the SkinDeformer).
+Hardware skinning also requires a specific vertex shader, and as such only works with the BGE's GLSL material mode, and currently does not support custom shaders.
 If hardware skinning cannot be used (e.g., if the skeleton has too many bones), the skinning falls back to software skinning using the BGE vertex deformer.
 
 \todo{Double-check shadows and discuss shadow limitations}
