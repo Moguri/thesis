@@ -84,7 +84,7 @@ When using hardware skinning, each vertex can only have four bones influencing i
 This limitation should work well enough in most cases.
 If a vertex has more than four bones influencing it, the four most influential bones are selected and their corresponding weights re-normalized.
 Hardware skinning also requires a specific vertex shader, and as such only works with the BGE's GLSL shader mode, and currently does not support custom shaders.
-If hardware skinning cannot be used, the skinning falls back to software skinning using the BGE vertex deformer.
+If hardware skinning cannot be used (due to the limitations mentioned), the skinning falls back to software skinning using the BGE vertex deformer.
 
 \todo{Double-check shadows and discuss shadow limitations}
 
