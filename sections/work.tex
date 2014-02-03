@@ -72,8 +72,8 @@ Currently the bone data is sent to the GPU as a uniform array of four-by-four tr
 
 In OpenGL/GLSL, there is a hardware limit on the number of uniform components that a shader can use.
 A ``component'' is essentially a float, so every float sent as a uniform to a shader uses up a component.
-To work nicely with the rest of Blender's vertex shader, the bone matrix data of the hardware skinning needs ensure that it does not use too many of the available components.
-If arbitrary limit is placed on the done matrix data to only use half of the available components, then plenty of room is left for other potential uniforms in the vertex shader.
+In order to leave components for the rest of Blender's vertex shader, the bone matrix data of the hardware skinning needs ensure that it does not use too many of the available components.
+If an arbitrary limit is placed on the done matrix data to only use half of the available components, then plenty of room is left for other potential uniforms in the vertex shader.
 Modern (shader model 4+) cards typically have 4096 components, which would give 2048 components for bone matrices, which allows for 128 matrices (a four-by-four matrix is sixteen components).
 Older cards tend to have 1024 components or less, giving a maximum of only 64 bone matrices on these graphics cards.
 Texture buffer objects (TBOs) could be used to work around component limits\cite{ARB_texture_buffer_object}, but they are not supported on these older cards, and 128 matrices is a reasonable limit on bones for the newer cards that support TBOs.
@@ -84,7 +84,7 @@ When using hardware skinning, each vertex can only have four bones influencing i
 This limitation should work well enough in most cases.
 If a vertex has more than four bones influencing it, the four most influential bones are selected and their corresponding weights re-normalized.
 Hardware skinning also requires a specific vertex shader, and as such only works with the BGE's GLSL shader mode, and currently does not support custom shaders.
-If hardware skinning cannot be used (due to the limitations mentioned), the skinning falls back to software skinning using the BGE vertex deformer.
+If hardware skinning cannot be used (e.g., if the skeleton has too many bones), the skinning falls back to software skinning using the BGE vertex deformer.
 
 \todo{Double-check shadows and discuss shadow limitations}
 
