@@ -42,19 +42,24 @@ If multiple ArmatureObjects share a single reference to a bArmature, and then th
 Therefore, in order to avoid the race conditions, it is better that each ArmatureObject not only has a unique copy of the bPose, but a unique copy of the bArmature as well.
 The copy does consume a little more memory, but it makes threading the animation code possible.
 
-A simple OpenMP parallel for construct was used to parallelize the loop found in Scene::UpdateAnimations().
-This construct also provides various scheduling options, that could be explored for better load balancing of the threads since some iterations of the loop that are not updating skeletal mesh animations will be completed much quicker.
+%A simple OpenMP parallel for construct was used to parallelize the loop found in Scene::UpdateAnimations().
+%This construct also provides various scheduling options, that could be explored for better load balancing of the threads since some iterations of the loop that are not updating skeletal mesh animations will be completed much quicker.
 
 \todo{Does this part really need to be mentioned?}
 A potential race condition found by Helgrind involved the bAction data stored by the Action class.
 This bAction data does get modified during animation updates, so it was best that each Action object held its own copy of the bAction data to avoid potential race conditions.
 
-Later, BLI\_task (see section~\ref{sec:bli_task}) was added to Blender.
+Initially, OpenMP\cite{openmp} was used to parallelize this loop using an OpenMP parallel for pragma.
+While OpenMP was simple to use, OpenMP support is compiler dependent since it relies on pragmas.
+Since OpenMP is implemented at the compiler level, support can vary (e.g., different OpenMP versions), and performance is not equivalent across compilers.
+For example,  MSVC 2010 introduced a performance regression with OpenMP code that could cause code to run two times slower than MSVC 2008.
+\todo{Cite regression: https://connect.microsoft.com/VisualStudio/feedback/details/640588)}
+
+Recently, BLI\_task (see section~\ref{sec:bli_task}) was added to Blender.
 This opened up an alternative to OpenMP that was not as compiler dependent.
 Furthermore, BLI\_task could be used for other parts of the BGE.
 Therefore, the code was switched from OpenMP to BLI\_task, which can be seen in listing~\ref{lst:anim_code_mt}.
-There was no discernible difference in performance between BLI\_task and OpenMP on the test system.
-\todo{Talk about MSVC 2010+ OpenMP performance issues? (https://connect.microsoft.com/VisualStudio/feedback/details/640588)}
+There was no discernible difference in performance between BLI\_task and OpenMP on the test platform (section~\ref{sec:bench_platform}).
 
 \includecpp{anim_code_mt}{Multithreaded animation update code}
 
