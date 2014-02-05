@@ -57,9 +57,9 @@ A screenshot of the scene being run is shown in figure~\ref{fig:anim_bench}.
 \fig{imgs/anim_heavy}{0.5}{Screenshot of the benchmark scene}{anim_bench}
 
 The benchmark scene will be run through the stand-alone Blenderplayer instead of the embedded player using the following settings:
-\begin{verbatim}
-blenderplayer -w 1600 900 -g show_framerate = 1 -g show_profile = 1 anim_stress.blend
-\end{verbatim}
+\begin{center}
+ \texttt{blenderplayer -w 1600 900 -g show\_framerate = 1 -g show\_profile = 1 anim\_stress.blend}
+\end{center}
 
 Another version of this scene, which is accessed by adding \texttt{- random} to the end of the above command line string, assigns a random action to each character.
 While this version is not as consistent as the original scene (making it poorer for benchmarking), it does help to visually verify that duplicates of the same character can play different actions.
