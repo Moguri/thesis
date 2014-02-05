@@ -94,9 +94,14 @@ For this work, the profiler is mostly used to get frametime and fps numbers.
 gperftools\cite{gperftools} is used for more detailed profiling that is offered by the BGE's profiler.
 The data from gperftools can also be used to generate a visual callgraph.
 
-\subsubsection{NVIDIA System Management Interface}
-The NVIDIA System Management Interface is a command line tool (nvidia-smi) that is used in this work to get information on GPU usage.
-\todo{Add a citation for nvidia-smi}
+\subsubsection{nvidia-settings}
+The nvidia-settings utility that ships with the NVIDIA drivers can be used to configure the driver and query the driver for information.
+Starting with version 331.20 of the driver, nvidia-settings can query for GPU utilization\cite{nvidia331.20}.
+The following command is used to monitor GPU utilization:
+
+\begin{center}
+ \texttt{watch -tn1 nvidia-settings -q gpuutilization}
+\end{center}
 
 \subsection{Verification}
 \ifsummaries
