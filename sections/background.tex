@@ -36,16 +36,16 @@ To determine each vertex's new skinned position and normal, equations~\ref{eq:sk
 
 \begin{equation}
  \label{eq:skinning_p}
-  P^\prime = P + \sum_b{\left(T_bPW_b\right)}
+  P^\prime = \sum_b{\left(w_bT_bP\right)}
 \end{equation}
 
 \begin{equation}
  \label{eq:skinning_n}
- N^\prime = N + \sum_b{\left(T_{rb}NW_b\right)}
+ N^\prime = \sum_b{\left(w_bT_{rb}N\right)}
 %  T_v = \sum_b{I_bT_b}
 \end{equation}
 
-For the position equation (equation~\ref{eq:skinning_p}) $P$ is the initial, rest position of the vertex, $b$ is a bone, $W_b$ is the scalar influence (i.e., the weight) of $b$ on the vertex and $T_b$ is the four-by-four transform matrix of the bone.
+For the position equation (equation~\ref{eq:skinning_p}) $P$ is the initial, rest position of the vertex, $b$ is a bone, $w_b$ is the scalar influence (i.e., the weight) of $b$ on the vertex and $T_b$ is the four-by-four transform matrix of the bone.
 The normal equation (equation~\ref{eq:skinning_n}) is similar except we use the normal's resting rotation ($N$) and the three-by-three rotation part of the bone transformation matrix as $T_{rb}$.
 These calculations must be done every time the pose of the skeleton is updated to create a new set of positions and normals for a mesh's vertexes.
 When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU (software skinning).
