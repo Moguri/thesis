@@ -121,6 +121,7 @@ morecomment=[l][keywordstyle4]{\#},
 }
 \newcommand{\includecode}[4] {
  \lstinputlisting[language=#1,label=lst:#2, caption=#3]{code/#2.#4}
+ \bigskip
 }
 \newcommand{\includecpp}[2] {\includecode{C++}{#1}{#2}{cpp}}
 \newcommand{\includeglsl}[2] {\includecode{GLSL}{#1}{#2}{glsl}}
