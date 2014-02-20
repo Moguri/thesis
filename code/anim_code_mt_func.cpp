@@ -1,4 +1,6 @@
-static void update_anim_thread_func(TaskPool *pool, void *taskdata, int UNUSED(threadid))
+static void update_anim_thread_func(TaskPool *pool,
+									void *taskdata,
+									int UNUSED(threadid))
 {
 	KX_GameObject *gameobj, *child;
 	CListValue *children;
