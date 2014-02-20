@@ -50,7 +50,9 @@ The normal equation (equation~\ref{eq:skinning_n}) is similar except we use the 
 These calculations must be done every time the pose of the skeleton is updated to create a new set of positions and normals for a mesh's vertexes.
 When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU (software skinning).
 
-A technique referred to as hardware skinning avoids this extra copy by moving the skinning step from the CPU to the GPU.
+\todo{Add the example from the defense presentation}
+
+A technique referred to as hardware skinning moves the skinning step from the CPU to the GPU.
 This also allows the skinning calculation to benefit from the impressive parallelization offered by modern graphics hardware.
 Another benefit is that the skeletal mesh can be treated as static geometry since all of the deformations are done on the GPU.
 This allows options such as display lists and vertex buffer objects\cite{ARB_texture_buffer_object} to be used to increase rendering performance.
