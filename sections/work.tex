@@ -58,10 +58,11 @@ For example,  MSVC 2010 introduced a performance regression with OpenMP code tha
 Recently, a threaded task scheduler was added to Blender named BLI\_task. \todo{cite: http://lists.blender.org/pipermail/bf-blender-cvs/2013-October/059841.html}
 This opened up an alternative to OpenMP that was not as compiler dependent.
 Furthermore, BLI\_task could be used for other parts of the BGE.
-Therefore, the code was switched from OpenMP to BLI\_task, which can be seen in listing~\ref{lst:anim_code_mt}.
+Therefore, the code was switched from OpenMP to BLI\_task, which can be seen in listings~\ref{lst:anim_code_mt1}~and~\ref{lst:anim_code_mt2}.
 There was no discernible difference in performance between BLI\_task and OpenMP on the test platform (section~\ref{sec:bench_platform}).
 
 \includecpp{anim_code_mt}{Multithreaded animation update code}
+\includecpp{anim_code_mt_func}{The update\_anim\_thread\_func() function}
 
 
 \subsubsection{Parallel Software Skinning}

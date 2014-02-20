@@ -8,7 +8,8 @@ uniform  mat4 bonematrices[128];
 varying vec3 varposition;
 varying vec3 varnormal;
 
-void hardware_skinning(in vec4 position, in vec3 normal, out vec4 transpos, out vec3 transnorm)
+void hardware_skinning(in vec4 position, in vec3 normal,
+                       out vec4 transpos, out vec3 transnorm)
 {
 	transpos = vec4(0.0);
 	transnorm = vec3(0.0);
@@ -16,8 +17,7 @@ void hardware_skinning(in vec4 position, in vec3 normal, out vec4 transpos, out 
 	vec4 curidx = index;
 	vec4 curweight = weight;
 
-	for (int i = 0; i < int(numbones); ++i)
-	{
+	for (int i = 0; i < int(numbones); ++i) {
 		mat4 m44 = bonematrices[int(curidx.x)];
 
 		transpos += m44 * position * curweight.x;
@@ -35,7 +35,6 @@ void hardware_skinning(in vec4 position, in vec3 normal, out vec4 transpos, out 
 
 void main()
 {
-
 	vec4 invertex;
 	vec3 innormal;
 
@@ -52,10 +51,3 @@ void main()
 	varposition = co.xyz;
 	varnormal = normalize(gl_NormalMatrix * innormal);
 	gl_Position = gl_ProjectionMatrix  * co;
-
-#ifdef GPU_NVIDIA
-	// Setting gl_ClipVertex is necessary to get glClipPlane working on NVIDIA
-	// graphic cards, while on ATI it can cause a software fallback.
-	gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex; 
-#endif 
-
