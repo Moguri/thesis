@@ -70,7 +70,23 @@ The normal equation (equation~\ref{eq:skinning_n}) is similar except we use the 
 These calculations must be done every time the pose of the skeleton is updated to create a new set of positions and normals for a mesh's vertexes.
 When rendering the mesh this also requires the vertex data to be re-sent to the graphics card if the skinning calculations were done on the CPU (software skinning).
 
-\todo{Add the example from the defense presentation}
+Figure~\ref{fig:sk_anim_ex} shows an example skeletal mesh animation in Blender, which uses a right-handed, Z-up coordinate system.
+This means that the up axis is the positive Z axis, the right is the positive X axis, and going into the screen is the positive Y axis.
+The example is a rectangular prism centered on the origin.
+\fig{imgs/sk_anim_ex}{0.5}{An example skeletal mesh animation}{sk_anim_ex}
+Using equation~\ref{eq:skinning_p}, a skinned position can be determined for the vertex labeled $V$ due to the animation shown:
+\begin{gather}
+ \label{eq:skinning_ex}
+ V = \left(\begin{array}{c}0.0\\-1.0\\1.0\\1.0\end{array}\right)
+ T_{b1} = \left(\begin{array}{cccc}1.0&0.0&0.0&0.0\\0.0&1.0&0.0&0.0\\0.0&0.0&1.0&0.0\\0.0&0.0&0.0&1.0\end{array}\right)
+ T_{b2} = \left(\begin{array}{cccc}0.7071&0.0&-0.7071&0.0\\0.0&1.0&0.0&0.0\\0.7071&0.0&0.7071&0.0\\0.0&0.0&0.0&1.0\end{array}\right)\nonumber\\
+ w_{b1} = 0.5\nonumber\\
+ w_{b2} = 0.5\nonumber\\\nonumber\\
+ V^\prime = \sum_b{\left(w_bT_bV\right)}\nonumber\\
+ V^\prime = w_{b1}T_{b1}V + w_{b2}T_{b2}V\nonumber\\
+ V^\prime = 0.5\left(\begin{array}{cccc}1.0&0.0&0.0&0.0\\0.0&1.0&0.0&0.0\\0.0&0.0&1.0&0.0\\0.0&0.0&0.0&1.0\end{array}\right)\left(\begin{array}{c}0.0\\-1.0\\1.0\\1.0\end{array}\right) + 0.5\left(\begin{array}{cccc}0.7071&0.0&-0.7071&0.0\\0.0&1.0&0.0&0.0\\0.7071&0.0&0.7071&0.0\\0.0&0.0&0.0&1.0\end{array}\right)\left(\begin{array}{c}0.0\\-1.0\\1.0\\1.0\end{array}\right)
+\end{gather}
+
 
 A technique referred to as hardware skinning moves the skinning step from the CPU to the GPU.
 This also allows the skinning calculation to benefit from the impressive parallelization offered by modern graphics hardware.
