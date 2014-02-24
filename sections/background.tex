@@ -1,21 +1,39 @@
 \section{Background}
 
-\subsection{OpenGL and GLSL}
-\ifsummaries
-\begin{itemize}
- \item OpenGL is an API to communicate with graphics hardware
- \item Discuss OpenGL versions
- \item GLSL is a high-level shading language used by OpenGL
- \item Shader types: vertex, geometry, fragment, compute
-\end{itemize}
-\fi
+\subsection{OpenGL and the GPU}
+Games (and most any real-time applications) leverage the impressive power of modern graphics processing units (GPUs).
+In the past, GPUs were almost entirely used for graphics processing as the name would suggest, however general purpose GPU computing (GPGPU) has also become popular (\todo{cite}).
+OpenGL is an application programming interface (API) that allows developers to communicate with graphics hardware.
 
-\todo{Fill out this section}
-\todo{Talk about Blender/BGE shader generation works}
+As graphics hardware has progressed, OpenGL has also needed to expand, and thus has different versions.
+As of the time of this writing, OpenGL is up to version 4.4 (\todo{cite}).
+However, one must keep in mind that OpenGL versions only specify a minimum specification that graphics hardware must meet.
+For example, an OpenGL 2 capable graphics card may still be able to use some OpenGL 3 features.
+Therefore, when using OpenGL, it is common to target features instead of OpenGL versions (e.g., check for shader support instead of checking for OpenGL 2 support).
 
-\subsubsection{Performance Bottlenecks}
+In earlier versions of OpenGL, a fixed graphics pipeline was defined.
+This pipeline could be setup, used and influenced by commands, but certain parts (e.g., the algorithm to determine pixel color) were still fixed.
+Eventually, parts of the pipeline became programmable.
+The programs written to control these parts of the pipeline are called shaders.
+OpenGL 4.4 specifies four shader types: vertex, geometry, fragment, and compute (\todo{cite?}).
+Primarily GLSL is used to write these shaders, but other languages such as Cg are supported (\todo{cite?}).
+Of interest to this work are the vertex and (partially) the fragment shader.
+A vertex shader controls vertex transformations (e.g., the model to view space coordinate conversion), and a fragment shader controls how a fragment (think pixel) is colored or shaded.
 
-\todo{Talk about information found in \cite{gpugems_28}.}
+\subsubsection{GPU/CPU Interaction}
+When using a GPU, the CPU is still used.
+This means that two processors are being used asynchronously and in parallel.
+The CPU is used to issue commands to the GPU (usually in some form of render step)
+Usually the CPU can continue to work while the GPU processes the commands it was given.
+However, the GPU driver can also block the CPU if, for example, the GPU has too much work to do.
+This gives two general categories of bottlenecks in a graphics application:
+\begin{enumerate}
+ \item The CPU is not issuing commands to the GPU fast enough. This results in the GPU being underutilized, and is known as being CPU-bound.
+ \item The CPU is too far ahead of the GPU and the GPU drivers cause the CPU to wait. In this case the CPU is being underutilized, and this is known as being GPU-bound.
+\end{enumerate}
+Improving the performance of code on running on the CPU will not improve performance if the CPU is just going to wait longer for the GPU to finish (GPU-bound).
+And similarly, if the application is CPU-bound, giving the GPU less work will also not improve performance.
+Therefore, it is important to identify the bottleneck and keep the load on the CPU and GPU balanced for the best performance.
 
 \subsection{Skeletal Mesh Animation}
 \ifsummaries
