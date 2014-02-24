@@ -117,8 +117,6 @@ The \texttt{usehwskin} uniform is always sent as zero.
 Any code wanting to make use of hardware skinning can later set it to one, which happens in SkinDeformer.
 Along with the \texttt{usehwskin} uniform, the SkinDeformer must handle the \texttt{bonematrices} uniform and the \texttt{weight}, \texttt{index} and \texttt{numbones} vertex attributes.
 
-\todo{Discuss bandwidth issues with transform matrices versus dual-quaternions}
-
 \subsubsection{Uniform Components and Bone Limitations}
 
 In OpenGL/GLSL, there is a hardware limit on the number of uniform components that a shader can use.
