@@ -44,6 +44,8 @@ Therefore, it is important to identify the bottleneck and keep the load on the C
 \fi
 
 One popular method used to drive character animations is to use a set of bones (also known as joints) called a skeleton (or armature) to deform a mesh.
+An example of this can be seen in figure~\ref{fig:ex_skmesh}.
+\fig{imgs/sinbad_skeletal_mesh}{0.5}{An example skeletal mesh}{ex_skmesh}
 Once a pose (a set of transforms for each bone) has been determined, an operation called skinning is used to deform the mesh to the pose.
 Transformations are usually represented as a four-by-four matrix, which encodes rotation, translation and scale.
 The pose transformations are relative to an initial ``rest'' pose.
