@@ -87,6 +87,8 @@ Since a pose can only be updated at most once per frame, the skinning step shoul
 It could be argued that the skinning code could have just be moved from SkinDeformer::Apply() to Scene::UpdateAnimations(), but this breaks the encapsulation of SkinDeformer, which is best avoided.
 The Scene does not need to know of the details of the mesh deformation caused by skinning, just that it needs to be performed.
 
+\fig{imgs/stats_mt}{0.5}{}{fig:stats_mt}
+
 \subsection{Hardware Skinning}
 \ifsummaries
 \begin{itemize}
@@ -115,6 +117,8 @@ The modified vertex shader fragment can be found in listing~\ref{lst:gpu_shader_
 The \texttt{usehwskin} uniform is always sent as zero.
 Any code wanting to make use of hardware skinning can later set it to one, which happens in SkinDeformer.
 Along with the \texttt{usehwskin} uniform, the SkinDeformer must handle the \texttt{bonematrices} uniform and the \texttt{weight}, \texttt{index} and \texttt{numbones} vertex attributes.
+
+\fig{imgs/stats_hws}{0.5}{}{fig:stats_hws}
 
 \subsubsection{Uniform Components and Bone Limitations}
 
@@ -152,3 +156,4 @@ Therefore, time can be saved by modifying arrays (one lookup per three to four w
 In the heavy benchmark scene, this gives approximately a 1.5x performance improvement.
 
 \todo{Maybe add some code snippets?}
+\fig{imgs/stats_rna}{0.5}{}{fig:stats_rna}
