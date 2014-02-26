@@ -148,10 +148,14 @@ The performance improvement for hardware skinning can be seen in figure~\ref{fig
 In OpenGL/GLSL, there is a hardware limit on the number of uniform components that a shader can use.
 A ``component'' is essentially a float, so every float sent as a uniform to a shader uses up a component.
 In order to leave components for the rest of Blender's vertex shader, the bone matrix data of the hardware skinning needs ensure that it does not use too many of the available components.
-If an arbitrary limit is placed on the done matrix data to only use half of the available components, then plenty of room is left for other potential uniforms in the vertex shader.
-Modern (shader model 4+) cards typically have 4096 components, which would give 2048 components for bone matrices, which allows for 128 matrices (a four-by-four matrix is sixteen components).
-Older cards tend to have 1024 components or less, giving a maximum of only 64 bone matrices on these graphics cards.
-Texture buffer objects (TBOs) could be used to work around component limits\cite{ARB_texture_buffer_object}, but they are not supported on these older cards, and 128 matrices is a reasonable limit on bones for the newer cards that support TBOs.
+To leave enough components for other parts of the vertex shader, an arbitrary limit is placed on the bone matrix data to only use half of the available components.
+Modern (shader model 4+) GPUs typically have 4096 components, which would give 2048 components for bone matrices, which allows for 128 matrices (a four-by-four matrix is sixteen components).
+Older GPUs tend to have 1024 components or less, giving a maximum of only 64 bone matrices on these graphics cards, but still leaves 512 components for other uniforms.
+512 components is enough for Blender's current vertex shader and leaves ample room for future additions to the vertex shader.
+Further work could be done to find a smarter limit on components to squeeze more bones onto older GPUs.
+
+Texture buffer objects (TBOs) could be used to work around component limits\cite{ARB_texture_buffer_object}, but they are not supported on the older GPUs that would benefit from them, and 128 matrices is a reasonable limit on bones for the newer GPUs that support TBOs.
+TBOs could potentially be used to support unlimited (bounded by texture memory) bones, but then separate code would need to be maintained for hardware skinning on different GPUs.
 
 \subsubsection{Other Limitations}
 
