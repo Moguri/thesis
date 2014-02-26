@@ -7,12 +7,14 @@
 \fi
 
 With the benchmark scene described in section~\ref{sec:bench_scene} running on the machine described in section~\ref{sec:bench_platform}, the optimizations presented give approximately a seven to eight times speedup.
+Overall, the optimizations presented show a greater performance improvement as more characters are added.
 A comparison of frame times between Blender's master Git branch and the branch used for this thesis work is presented in figure~\ref{fig:final_stats}.
-\todo{Talk about scaling}
 
 \fig{imgs/final_stats}{0.5}{Comparison of frametimes between Blender's master branch and this work}{final_stats}
 
-On the test machine, the scene is GPU bound. In order to further increase performance, the BGE's rendering system as a whole needs to be further optimized, which is outside the scope of this project.
+On the test machine, the scene is CPU bound when the improvements are taken individually.
+However, with all of the improvements, the test scene becomes GPU bound.
+In order to further increase performance, the BGE's rendering system as a whole needs to be further optimized, which is outside the scope of this project.
 
 % \subsection{Future Work}
 % \begin{itemize}
