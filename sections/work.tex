@@ -26,6 +26,26 @@ The exact savings is difficult to calculate since it is view dependent.
 
 This optimization has already been committed to Blender's master branch and was included as part of the 2.69 release.
 
+\subsection{Bundled RNA Lookups}
+\ifsummaries
+\begin{itemize}
+ \item Animation in Blender modifies RNA values
+ \item RNA array values were doing a slow lookup for each array element
+ \item Array values can be bundled into one lookup
+ \item ~1.5x performance improvement on large benchmark scene
+\end{itemize}
+\fi
+
+As discussed in section~\ref{sec:bf_dna_rna}, updating poses requires using RNA to modify values, which can be slow.
+Looking up the RNA property is one of the more expensive parts of the RNA writing step.
+Every channel (e.g., X Position, Y Position, Z Position, etc) was being looked up as a separate property.
+However, RNA supports looking up and modifying an array (e.g., Position).
+Therefore, time can be saved by modifying arrays (one lookup per three to four writes) at a time instead of each channel individually (one lookup per one write).
+In the heavy benchmark scene, this gives approximately a 1.5x performance improvement.
+
+\todo{Maybe add some code snippets?}
+\fig{imgs/stats_rna}{0.5}{}{fig:stats_rna}
+
 \subsection{Multithreading}
 \subsubsection{Parallel Pose Updates}
 \ifsummaries
@@ -137,23 +157,3 @@ This limitation should work well enough in most cases.
 If a vertex has more than four bones influencing it, the four most influential bones are selected and their corresponding weights re-normalized (this is done in the SkinDeformer).
 Hardware skinning also requires a specific vertex shader, and as such only works with the BGE's GLSL material mode, and currently does not support custom shaders.
 If hardware skinning cannot be used (e.g., if the skeleton has too many bones), the skinning falls back to software skinning using the BGE vertex deformer.
-
-\subsection{Bundled RNA Lookups}
-\ifsummaries
-\begin{itemize}
- \item Animation in Blender modifies RNA values
- \item RNA array values were doing a slow lookup for each array element
- \item Array values can be bundled into one lookup
- \item ~1.5x performance improvement on large benchmark scene
-\end{itemize}
-\fi
-
-As discussed in section~\ref{sec:bf_dna_rna}, updating poses requires using RNA to modify values, which can be slow.
-Looking up the RNA property is one of the more expensive parts of the RNA writing step.
-Every channel (e.g., X Position, Y Position, Z Position, etc) was being looked up as a separate property.
-However, RNA supports looking up and modifying an array (e.g., Position).
-Therefore, time can be saved by modifying arrays (one lookup per three to four writes) at a time instead of each channel individually (one lookup per one write).
-In the heavy benchmark scene, this gives approximately a 1.5x performance improvement.
-
-\todo{Maybe add some code snippets?}
-\fig{imgs/stats_rna}{0.5}{}{fig:stats_rna}
