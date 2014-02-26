@@ -41,10 +41,10 @@ Looking up the RNA property is one of the more expensive parts of the RNA writin
 Every channel (e.g., X Position, Y Position, Z Position, etc) was being looked up as a separate property.
 However, RNA supports looking up and modifying an array (e.g., Position).
 Therefore, time can be saved by modifying arrays (one lookup per three to four writes) at a time instead of each channel individually (one lookup per one write).
-In the heavy benchmark scene, this gives approximately a 1.5x performance improvement.
+The performance improvement is shown in figure~\ref{fig:stats_rna}.
 
 \todo{Maybe add some code snippets?}
-\fig{imgs/stats_rna}{0.5}{}{fig:stats_rna}
+\fig{imgs/stats_rna}{0.5}{}{stats_rna}
 
 \subsection{Multithreading}
 \subsubsection{Parallel Pose Updates}
@@ -107,7 +107,9 @@ Since a pose can only be updated at most once per frame, the skinning step shoul
 It could be argued that the skinning code could have just be moved from SkinDeformer::Apply() to Scene::UpdateAnimations(), but this breaks the encapsulation of SkinDeformer, which is best avoided.
 The Scene does not need to know of the details of the mesh deformation caused by skinning, just that it needs to be performed.
 
-\fig{imgs/stats_mt}{0.5}{}{fig:stats_mt}
+The performance improvement from both the parallel pose updates and the parallel software skinning are shown in figure~\ref{fig:stats_mt}.
+
+\fig{imgs/stats_mt}{0.5}{}{stats_mt}
 
 \subsection{Hardware Skinning}
 \ifsummaries
@@ -137,8 +139,9 @@ The modified vertex shader fragment can be found in listing~\ref{lst:gpu_shader_
 The \texttt{usehwskin} uniform is always sent as zero.
 Any code wanting to make use of hardware skinning can later set it to one, which happens in SkinDeformer.
 Along with the \texttt{usehwskin} uniform, the SkinDeformer must handle the \texttt{bonematrices} uniform and the \texttt{weight}, \texttt{index} and \texttt{numbones} vertex attributes.
+The performance improvement for hardware skinning can be seen in figure~\ref{fig:stats_hws}
 
-\fig{imgs/stats_hws}{0.5}{}{fig:stats_hws}
+\fig{imgs/stats_hws}{0.5}{}{stats_hws}
 
 \subsubsection{Uniform Components and Bone Limitations}
 
