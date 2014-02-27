@@ -171,14 +171,11 @@ Some prefixes from Blender that one might see used in BGE code include:
 
 \subsubsection{Blender and DNA/RNA}
 \label{sec:bf_dna_rna}
-\todo{Check out the Blender wiki for better DNA/RNA explanations.}
 
 Blender contains two systems for storing and manipulating data, these are DNA and RNA. DNA is responsible for storing (and ultimately saving) Blender data, while RNA describes the DNA data and how it can be accessed.
-In other words, DNA values are modified via RNA.
+In other words, DNA values (stored as C structs) are modified via RNA (functions).
 Blender's animation system uses this RNA for writing out new pose data.
-Unfortunately looking up RNA values and modifying them were never optimized for speed.
-Therefore, these operations can be slow, and comprise a bulk of the pose updating time in Blender/BGE.
-\todo{Maybe generate a callgraph to show this is the case?}
+Unfortunately looking up RNA values and modifying them were never optimized for speed, and sometimes these operations can be slow.
 
 \subsubsection{BGE Overview}
 \label{sec:bge_general_overview}
