@@ -43,7 +43,6 @@ However, RNA supports looking up and modifying an array (e.g., Position).
 Therefore, time can be saved by modifying arrays (one lookup per three to four writes) at a time instead of each channel individually (one lookup per one write).
 The performance improvement is shown in figure~\ref{fig:stats_rna}.
 
-\todo{Maybe add some code snippets?}
 \fig{imgs/stats_rna}{0.5}{}{stats_rna}
 
 \subsection{Multithreading}
@@ -60,13 +59,11 @@ The juggling of the bPose reference of bArmature described in section~\ref{sec:b
 If multiple ArmatureObjects share a single reference to a bArmature, and then those ArmatureObjects attempt to modify their bArmature simultaneously, problems will occur.
 Therefore, in order to avoid the race conditions, it is better that each ArmatureObject not only has a unique copy of the bPose, but a unique copy of the bArmature as well.
 The copy does consume a little more memory, but it makes threading the animation code possible.
+Another potential race condition involved the bAction data stored by the Action class.
+This bAction data does get modified during animation updates, so it was best that each Action object held its own copy of the bAction data to avoid potential race conditions.
 
 %A simple OpenMP parallel for construct was used to parallelize the loop found in Scene::UpdateAnimations().
 %This construct also provides various scheduling options, that could be explored for better load balancing of the threads since some iterations of the loop that are not updating skeletal mesh animations will be completed much quicker.
-
-\todo{Does this part really need to be mentioned?}
-A potential race condition found by Helgrind involved the bAction data stored by the Action class.
-This bAction data does get modified during animation updates, so it was best that each Action object held its own copy of the bAction data to avoid potential race conditions.
 
 Initially, OpenMP\cite{openmp} was used to parallelize this loop using an OpenMP parallel for pragma.
 While OpenMP was simple to use, OpenMP support is compiler dependent since it relies on pragmas.
