@@ -68,10 +68,9 @@ This bAction data does get modified during animation updates, so it was best tha
 Initially, OpenMP\cite{openmp} was used to parallelize this loop using an OpenMP parallel for pragma.
 While OpenMP was simple to use, OpenMP support is compiler dependent since it relies on pragmas.
 Since OpenMP is implemented at the compiler level, support can vary (e.g., different OpenMP versions), and performance is not equivalent across compilers.
-For example,  MSVC 2010 introduced a performance regression with OpenMP code that could cause code to run two times slower than MSVC 2008.
-\todo{Cite regression: https://connect.microsoft.com/VisualStudio/feedback/details/640588)}
+For example,  MSVC 2010 introduced a performance regression with OpenMP code that could cause code to run two times slower than MSVC 2008\cite{msvcompreg}.
 
-Recently, a threaded task scheduler was added to Blender named BLI\_task. \todo{cite: http://lists.blender.org/pipermail/bf-blender-cvs/2013-October/059841.html}
+Recently, a threaded task scheduler was added to Blender named BLI\_task\cite{blitask}.
 This opened up an alternative to OpenMP that was not as compiler dependent.
 Furthermore, BLI\_task could be used for other parts of the BGE.
 Therefore, the code was switched from OpenMP to BLI\_task, which can be seen in listing~\ref{lst:anim_code_mt}.
