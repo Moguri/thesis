@@ -2,11 +2,11 @@
 
 \subsection{OpenGL and the GPU}
 Games (and most any real-time applications) leverage the impressive power of modern graphics processing units (GPUs).
-In the past, GPUs were almost entirely used for graphics processing as the name would suggest, however general purpose GPU computing (GPGPU) has also become popular (\todo{cite}).
+In the past, GPUs were almost entirely used for graphics processing as the name would suggest, however general purpose GPU computing (GPGPU) has also become popular.
 OpenGL is an application programming interface (API) that allows developers to communicate with graphics hardware.
 
 As graphics hardware has progressed, OpenGL has also needed to expand, and thus has different versions.
-As of the time of this writing, OpenGL is up to version 4.4 (\todo{cite}).
+As of the time of this writing, OpenGL is up to version 4.4.
 However, one must keep in mind that OpenGL versions only specify a minimum specification that graphics hardware must meet.
 For example, an OpenGL 2 capable graphics card may still be able to use some OpenGL 3 features.
 Therefore, when using OpenGL, it is common to target features instead of OpenGL versions (e.g., check for shader support instead of checking for OpenGL 2 support).
@@ -15,8 +15,8 @@ In earlier versions of OpenGL, a fixed graphics pipeline was defined.
 This pipeline could be setup, used and influenced by commands, but certain parts (e.g., the algorithm to determine pixel color) were still fixed.
 Eventually, parts of the pipeline became programmable.
 The programs written to control these parts of the pipeline are called shaders.
-OpenGL 4.4 specifies four shader types: vertex, geometry, fragment, and compute (\todo{cite?}).
-Primarily GLSL is used to write these shaders, but other languages such as Cg are supported (\todo{cite?}).
+OpenGL 4.4 specifies four shader types: vertex, geometry, fragment, and compute.
+Primarily GLSL is used to write these shaders, but other languages such as Cg are supported.
 Of interest to this work are the vertex and (partially) the fragment shader.
 A vertex shader controls vertex transformations (e.g., the model to view space coordinate conversion), and a fragment shader controls how a fragment (think pixel) is colored or shaded.
 
