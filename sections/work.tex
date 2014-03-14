@@ -43,7 +43,7 @@ However, RNA supports looking up and modifying an array (e.g., Position).
 Therefore, time can be saved by modifying arrays (one lookup per three to four writes) at a time instead of each channel individually (one lookup per one write).
 The performance improvement is shown in figure~\ref{fig:stats_rna}.
 
-\fig{imgs/stats_rna}{0.5}{}{stats_rna}
+\fig{imgs/stats_rna}{0.5}{Results of RNA improvements}{stats_rna}
 
 \subsection{Multithreading}
 \subsubsection{Parallel Pose Updates}
@@ -105,7 +105,7 @@ The Scene does not need to know of the details of the mesh deformation caused by
 
 The performance improvement from both the parallel pose updates and the parallel software skinning are shown in figure~\ref{fig:stats_mt}.
 
-\fig{imgs/stats_mt}{0.5}{}{stats_mt}
+\fig{imgs/stats_mt}{0.5}{Results of RNA and multi-threading improvements}{stats_mt}
 
 \subsection{Hardware Skinning}
 \ifsummaries
@@ -137,7 +137,7 @@ Any code wanting to make use of hardware skinning can later set it to one, which
 Along with the \texttt{usehwskin} uniform, the SkinDeformer must handle the \texttt{bonematrices} uniform and the \texttt{weight}, \texttt{index} and \texttt{numbones} vertex attributes.
 The performance improvement for hardware skinning can be seen in figure~\ref{fig:stats_hws}
 
-\fig{imgs/stats_hws}{0.5}{}{stats_hws}
+\fig{imgs/stats_hws}{0.5}{Results of RNA and hardware skinning improvements}{stats_hws}
 
 \subsubsection{Uniform Components and Bone Limitations}
 
