@@ -143,6 +143,19 @@ morecomment=[l][keywordstyle4]{\#},
 \definecolor{todo}{rgb}{1,0,0}
 \newcommand{\todo}[1] {{\color{todo} TODO: #1}}
 
+\newenvironment{experience}[4]
+{
+  \begin{tabbing}
+  \hspace{1.4in}\= \hspace{2.2in}\= \kill % set up two tab positions
+		#1 \> #2 \> #3  \\
+% 		\>                     \> #4
+  \end{tabbing}\vspace{-15pt}      % suppress blank line after tabbing
+  \begin{itemize}
+}
+{
+  \end{itemize}
+}
+
 \newcommand{\tallhrule}{\vspace{1.5cm}\hrule\vspace{1.5cm}}
 
 % A way to quickly hide the summaries
@@ -215,8 +228,6 @@ morecomment=[l][keywordstyle4]{\#},
 \clearpage
 \end{titlepage}
 
-
-
 % Body of Thesis
 \pagenumbering{arabic}
 \thispagestyle{empty}
@@ -237,4 +248,71 @@ morecomment=[l][keywordstyle4]{\#},
 
 \bibliographystyle{IEEEtran}
 \bibliography{library}
+
+\clearpage
+% Vita
+
+\section*{Vita}
+
+\makeatletter
+Author: \@author
+\makeatother
+
+% \section*{\Large SKILLS}
+%    \begin{itemize}
+%     \item {\em Programming Languages}: Python, C/C++, Java, \LaTeX, (X)HTML, CSS, PHP, Javascript, CMake
+%     \item {\em Frameworks and Toolkits}: Qt (including PyQt), Django
+%     \item {\em Version Control Systems}: SVN, Git, Mercurial, Bazaar
+%     \item Design Patterns, principles of SOLID, and data-oriented design
+%     \item Writing OpenGL applications (including GLSL shaders)
+%     \item Interfacing C/C++ with Python via ctypes and the Python C API
+%    \end{itemize}
+
+\subsection*{Work Experience}
+   \vspace{-0.1in}
+
+   \begin{experience}{2012 -- Present}{Graduate Assistant}{Eastern Washington University}{Cheney, WA}
+    \item Wrote software to assist in generating lab assignments for the database classes
+    \item Wrote software to convert Oracle SQL to MySQL
+    \item Assisted in overseeing and guiding Senior Project groups
+    \item Taught Computer Literacy for four quarters
+   \end{experience}
+
+   \begin{experience}{2010 -- 2012}{Computer Science Lab Assistant}{Eastern Washington University}{Cheney, WA}
+    \item Assisted other students with their programming assignments
+    \item Topics included introductory programming, data structures, and algorithms
+   \end{experience}
+
+\subsection*{Open Source Experience}
+   \vspace{-0.1in}
+
+   \begin{experience}{Summer 2012}{Student Developer}{Google Summer of Code}{}
+    \item Implemented asynchronous asset loading
+    \item Improved the performance of converting Blender data to game engine data
+    \item Implemented a Pre-Z pass optimization to minimize the effects of overdraw
+    \item Closed approximately sixty-five bug reports
+   \end{experience}
+
+   \begin{experience}{Summer 2011}{Student Developer}{Google Summer of Code}{}
+    \item Overhauled the Blender Game Engine's animation system
+    \item Added features such as animation layers and an animation Python API
+   \end{experience}
+
+   \begin{experience}{Summer 2010}{Student Developer}{Google Summer of Code}{}
+    \item Worked on better custom shader support for the Blender Game Engine
+    \item Allowed custom shaders to be displayed in Blender's viewport (outside of the engine)
+    \item Added support for geometry shaders
+    \item Added an improved Python API for custom shaders
+   \end{experience}
+
+   \begin{experience}{2008 -- Present}{Developer}{Blender}{}
+    \item Gained commit rights in 2009
+    \item Listed as a top 20 Blender developer of 2013
+    \item Help to maintain and develop the Blender Game Engine (includes rendering, animation, physics, Python scripting API)
+   \end{experience}
+
+\subsection*{Projects}
+   \begin{itemize}
+    \item {\em Bgui}, a Python GUI library for the Blender Game Engine
+   \end{itemize}
 \end{document}
