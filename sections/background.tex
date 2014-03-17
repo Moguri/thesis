@@ -16,12 +16,12 @@ This pipeline could be setup, used and influenced by commands, but certain parts
 Eventually, parts of the pipeline became programmable.
 The programs written to control these parts of the pipeline are called shaders.
 OpenGL 4.4 specifies four shader types: vertex, geometry, fragment, and compute.
-Primarily GLSL is used to write these shaders, but other languages such as Cg are supported.
+Primarily GLSL is used to write these shaders, but other languages such as Cg (a high-level shading language from NVIDIA) are supported.
 Of interest to this work are the vertex and (partially) the fragment shader.
 A vertex shader controls vertex transformations (e.g., the model to view space coordinate conversion), and a fragment shader controls how a fragment (think pixel) is colored or shaded.
 
 \subsubsection{GPU/CPU Interaction}
-When using a GPU, the CPU is still used.
+When using a GPU, the central processing unite (CPU) is still used.
 This means that two processors are being used asynchronously and in parallel.
 The CPU is used to issue commands to the GPU (usually in some form of render step)
 Usually the CPU can continue to work while the GPU processes the commands it was given.
