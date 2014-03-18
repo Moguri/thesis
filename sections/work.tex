@@ -100,7 +100,7 @@ Thus, skinning code could be moved from SkiinDeformer::Apply() to SkinDeformer::
 It does not matter if this update is called multiple times (e.g., once in Scene::UpdateAnimations() and again in the rasterizer) since it contains a guard to only do skinning if there has been a pose update since the last call to SkinDeformer::Update().
 Since a pose can only be updated at most once per frame, the skinning step should happen at most once per frame regardless of how many times SkinDeformer::Update() is called.
 
-It could be argued that the skinning code could have just be moved from SkinDeformer::Apply() to Scene::UpdateAnimations(), but this breaks the encapsulation of SkinDeformer, which is best avoided.
+It could be argued that the skinning code could just be moved from SkinDeformer::Apply() to Scene::UpdateAnimations(), but this breaks the encapsulation of SkinDeformer, which is best avoided.
 The Scene does not need to know of the details of the mesh deformation caused by skinning, just that it needs to be performed.
 
 The performance improvement from both the parallel pose updates and the parallel software skinning are shown in figure~\ref{fig:stats_mt}.
@@ -132,7 +132,7 @@ The modified vertex shader fragment can be found in listing~\ref{lst:gpu_shader_
 
 \includeglsl{gpu_shader_vertex}{Blender's vertex shader modified for hardware skinning}
 
-The \texttt{usehwskin} uniform is always sent as zero.
+The \texttt{usehwskin} uniform is always sent as zero from Blender by default.
 Any code wanting to make use of hardware skinning can later set it to one, which happens in SkinDeformer.
 Along with the \texttt{usehwskin} uniform, the SkinDeformer must handle the \texttt{bonematrices} uniform and the \texttt{weight}, \texttt{index} and \texttt{numbones} vertex attributes.
 The performance improvement for hardware skinning can be seen in figure~\ref{fig:stats_hws}

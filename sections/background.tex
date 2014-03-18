@@ -2,7 +2,8 @@
 
 \subsection{OpenGL and the GPU}
 Games (and most any real-time applications) leverage the impressive power of modern graphics processing units (GPUs).
-In the past, GPUs were almost entirely used for graphics processing as the name would suggest, however general purpose GPU computing (GPGPU) has also become popular.
+In the past, GPUs were almost entirely used for, as the name would suggest, graphics processing.
+However general purpose GPU computing (GPGPU) has also become popular.
 OpenGL is an application programming interface (API) that allows developers to communicate with graphics hardware.
 
 As graphics hardware has progressed, OpenGL has also needed to expand, and thus has different versions.
@@ -23,7 +24,7 @@ A vertex shader controls vertex transformations (e.g., the model to view space c
 \subsubsection{GPU/CPU Interaction}
 When using a GPU, the central processing unite (CPU) is still used.
 This means that two processors are being used asynchronously and in parallel.
-The CPU is used to issue commands to the GPU (usually in some form of render step)
+The CPU is used to issue commands to the GPU (usually in some form of render step).
 Usually the CPU can continue to work while the GPU processes the commands it was given.
 However, the GPU driver can also block the CPU if, for example, the GPU has too much work to do.
 This gives two general categories of bottlenecks in a graphics application:
@@ -176,7 +177,7 @@ Some prefixes from Blender that one might see used in BGE code include:
 Blender contains two systems for storing and manipulating data, these are DNA and RNA. DNA is responsible for storing (and ultimately saving) Blender data, while RNA describes the DNA data and how it can be accessed.
 In other words, DNA values (stored as C structs) are modified via RNA (functions).
 Blender's animation system uses this RNA for writing out new pose data.
-Unfortunately looking up RNA values and modifying them were never optimized for speed, and sometimes these operations can be slow.
+Unfortunately looking up RNA values and modifying them was never optimized for speed, and sometimes these operations can be slow.
 
 \subsubsection{BGE Overview}
 \label{sec:bge_general_overview}
@@ -206,14 +207,14 @@ For discussion purposes, the prefixes will be left off of the class names.
 
 The Scene class contains an aggregate, called m\_objectlist, of all of the GameObjects in the scene (CListValue is a wrapper around C++'s vector class).
 Some of those objects can also be present in m\_animatedlist, which is iterated in Scene::UpdateAnimations().
-ArmatureObjects represent skeletons that we may or may not want to animate, and DeformableObjects are ones with deform-able meshes.
+ArmatureObjects represent skeletons that we may or may not want to animate, and DeformableObjects are ones with deformable meshes.
 A handful of Deformers exist in the BGE, but the SkinDeformer is the only one of interest for skeletal mesh animations.
 The SkinDeformer will deform the mesh based off of the current pose of an ArmatureObject (usually the mesh's parent object).
 A Deformer is updated during the render stage while ArmatureObjects are updated during the animation stage.
 
 The ArmatureObject contains Blender data in the form of bArmature and bPose pointers.
 Every ArmatureObject that uses the same skeleton will also point to the same bArmature.
-All ArmatureObjects make copy of their bArmature's bPose.
+All ArmatureObjects make a copy of their bArmature's bPose.
 In order to actually update the pose, the bArmature's bPose pointer is saved and replaced with the ArmatureObject's bPose, and then some Blender functions are called to animate the bArmature.
 The bArmature's original pointer is then restored.
 The code that performs this update (as well as some blending) is shown in listing~\ref{lst:anim_pose_update}.
