@@ -99,7 +99,7 @@ The differences in program flow between software and hardware skinning are shown
 \fig{uml/skinned_update}{0.5}{UML Activity diagram for skinned animations}{skinned_update}
 
 As can be seen in figure~\ref{fig:skinned_update}, instead of sending new vertex data every frame, the pose data must be sent every frame.
-This means, as far as memory bandwidth, $number\_of\_verts*sizeof(vertex)$ is being traded for $number\_of\_bones*sizeof(bone_transform)$.
+This means, as far as memory bandwidth, $number\_of\_verts*sizeof(vertex)$ is being traded for $number\_of\_bones*sizeof(bone\_transform)$.
 The size of a vertex in the BGE can range from between six floats (position and normal) to thirty-one floats (position, normal, color, and various texture coordinates).
 Using just position, normals and UV texture coordinates results in only eight floats and is feasible for a simple character.
 Bone transformations, as mentioned earlier, are a four-by-four matrix, which is sixteen floats.
