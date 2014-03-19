@@ -74,6 +74,9 @@ In other words, to show that the threaded code is not breaking when used with di
 \end{itemize}
 \fi
 
+In order to optimize code, the code must first be profiled so bottlenecks can be properly identified.
+To gather profiling information for both the CPU and GPU, three tools were used in this work: the BGE's built-in profiler, gperftools, and the query option of nvidia-settings.
+
 \subsubsection{BGE Profiler}
 \label{sec:bge_profiler}
 \fig{imgs/profiler.png}{0.75}{Screenshot of the BGE's in-game profiler}{bge_profiler}
