@@ -92,6 +92,8 @@ This gives an idea of how long the CPU has to spend waiting for the GPU to finis
 \cite{bge_profile_stats} gives a more detailed overview of the various categories.
 
 For this work, the profiler is mostly used to get frametime and fps numbers.
+When collecting data, frametime is averaged over ten seconds.
+A consequence of this is scenes with lower frametimes (e.g., scenes with fewer characters) will have more samples to average than scenes with higher frametimes.
 
 \subsubsection{gperftools}
 gperftools\cite{gperftools} is used for more detailed profiling that is offered by the BGE's profiler.
